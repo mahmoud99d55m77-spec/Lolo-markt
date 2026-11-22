@@ -47,7 +47,7 @@
     body {
       font-family: 'Cairo', sans-serif;
       -webkit-tap-highlight-color: transparent;
-      padding-bottom: 120px;
+      padding-bottom: 80px;
     }
     .hide-scrollbar::-webkit-scrollbar {
       display: none;
@@ -62,10 +62,6 @@
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
-    }
-    #cartBar {
-      bottom: 50px !important;
-      z-index: 99999999 !important;
     }
   </style>
 </head>
@@ -83,7 +79,7 @@
         <div>
           <div class="flex items-center gap-1.5">
             <h1 class="font-black text-sm sm:text-base text-slate-900 leading-none">تسوق الغريزات</h1>
-            <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-emerald-500" title="متصل بالإكسل"></span>
+            <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-emerald-500" title="متصل"></span>
           </div>
           <p class="text-[10px] text-slate-400 font-semibold mt-0.5">خدمة دليفري ومشاوير القرية</p>
         </div>
@@ -117,36 +113,42 @@
     <!-- ==================== 100% DYNAMIC MAIN NAVIGATION TABS ==================== -->
     <nav class="bg-white p-1 rounded-2xl border border-slate-200/90 shadow-sm overflow-x-auto hide-scrollbar">
       <div id="dynamicMainTabsContainer" class="flex items-center gap-1 min-w-full text-center text-xs font-bold">
-        <!-- Rendered dynamically from Google Sheet! Any new section creates its own tab automatically -->
+        <!-- Rendered dynamically -->
       </div>
     </nav>
 
     <!-- ==================== DYNAMIC CONTAINER FOR CONTENT SECTIONS ==================== -->
     <div id="dynamicContentContainer">
-      <!-- Dynamically filled with products, categories, and custom request bar for the active tab -->
+      <!-- Products / Restaurants / Pharmacies / Errand Runner -->
     </div>
 
   </main>
 
-  <!-- ==================== STICKY FLOATING CART BAR ==================== -->
-  <div id="cartBar" class="fixed left-3 right-3 max-w-md mx-auto bg-slate-900 text-white p-2.5 rounded-2xl shadow-2xl flex items-center justify-between gap-3 border border-slate-800">
-    <div class="flex items-center gap-2.5 pr-1 cursor-pointer" onclick="openCartModal()">
-      <div class="relative">
-        <span class="text-xl">🛒</span>
-        <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-slate-900 shadow">0</span>
+  <!-- ==================== BOTTOM CART BAR ==================== -->
+  <div id="cartBar" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-2.5 pr-1 cursor-pointer" onclick="openCartModal()">
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          </div>
+          <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white shadow">0</span>
+        </div>
+        <div>
+          <p class="text-[10px] text-slate-400 leading-none font-semibold">الإجمالي التقديري</p>
+          <p class="text-xs font-black text-slate-900 mt-0.5">
+            <span id="cartApproxTotal">0</span> ج <span class="text-[10px] text-slate-400 font-normal">+ توصيل</span>
+          </p>
+        </div>
       </div>
-      <div>
-        <p class="text-[10px] text-slate-400 leading-none">الإجمالي التقديري</p>
-        <p class="text-xs font-black text-white mt-0.5">
-          <span id="cartApproxTotal">0</span> ج <span class="text-[9px] text-slate-400 font-normal">+ توصيل</span>
-        </p>
-      </div>
-    </div>
 
-    <button onclick="openCartModal()" class="bg-gradient-to-r from-brand-500 to-emerald-500 hover:from-brand-600 hover:to-emerald-600 active:scale-95 text-white font-black text-xs py-2 px-3.5 rounded-xl shadow-md flex items-center gap-1.5 transition">
-      <span>عرض السلة والطلب</span>
-      <svg class="w-3.5 h-3.5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-    </button>
+      <button onclick="openCartModal()" class="flex-1 bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-700 hover:to-emerald-700 active:scale-95 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/20 flex items-center justify-center gap-1.5 transition">
+        <span>عرض السلة والطلب</span>
+        <svg class="w-3.5 h-3.5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </button>
+
+    </div>
   </div>
 
   <!-- ==================== MODAL: CART & CHECKOUT ==================== -->
@@ -191,9 +193,9 @@
         <div class="space-y-2">
           <h4 class="text-xs font-bold text-slate-600">بيانات التوصيل:</h4>
           
-          <input type="text" id="custName" placeholder="الاسم بالكامل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
-          <input type="tel" id="custPhone" placeholder="رقم الهاتف للتواصل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500" dir="ltr">
-          <input type="text" id="custAddress" placeholder="العنوان بالتفصيل (الشارع أو علامة مميزة) *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
+          <input type="text" id="custName" placeholder="الاسم بالكامل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+          <input type="tel" id="custPhone" placeholder="رقم الهاتف للتواصل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold" dir="ltr">
+          <input type="text" id="custAddress" placeholder="العنوان بالتفصيل (الشارع أو علامة مميزة) *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
 
           <!-- GPS LOCATION BUTTON -->
           <div class="pt-1">
@@ -262,30 +264,91 @@
 
     let appConfig = DEFAULT_CONFIG;
 
-    // Structured Data Model by Main Department
-    // Structure: { [mainCatName]: { type: 'catalog' | 'restaurants' | 'pharmacies', subCategories: [], items: [] } }
-    let catalogDepartments = {};
-    let activeMainTab = ''; // Currently selected main department
-    let activeSubFilter = 'all'; // Currently selected sub-filter
+    // PRE-POPULATED DEFAULT DEPARTMENTS (Guarantees the app is NEVER blank!)
+    const DEFAULT_DEPARTMENTS = {
+      'الماركت': {
+        name: 'الماركت',
+        type: 'catalog',
+        emoji: '🛒',
+        subCategories: ['ألبان وأجبان', 'أساسيات وسكر وزيت', 'خضار وفاكهة', 'مسليات وكانزات', 'منظفات', 'العاب', 'عطاره'],
+        items: [
+          { id: 'def_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'ألبان وأجبان', icon: '🧀' },
+          { id: 'def_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'ألبان وأجبان', icon: '🧀' },
+          { id: 'def_3', name: 'طبق بيض أحمر (30 بيضة)', price: 160, subCat: 'ألبان وأجبان', icon: '🥚' },
+          { id: 'def_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'ألبان وأجبان', icon: '🥛' },
+          { id: 'def_5', name: 'سكر أبيض نقي 1 ك', price: 35, subCat: 'أساسيات وسكر وزيت', icon: '🍚' },
+          { id: 'def_6', name: 'شاي العروسة ناعم ربع ك', price: 45, subCat: 'أساسيات وسكر وزيت', icon: '☕' },
+          { id: 'def_7', name: 'زيت قلية خليط 700 مل', price: 55, subCat: 'أساسيات وسكر وزيت', icon: '🌻' },
+          { id: 'def_8', name: 'أرز بلدي فاخر 1 ك', price: 32, subCat: 'أساسيات وسكر وزيت', icon: '🌾' },
+          { id: 'def_9', name: 'طماطم بلدي طازجة 1 ك', price: 20, subCat: 'خضار وفاكهة', icon: '🍅' },
+          { id: 'def_10', name: 'بطاطس تحمير فاخرة 1 ك', price: 25, subCat: 'خضار وفاكهة', icon: '🥔' },
+          { id: 'def_11', name: 'شيبسي عائلي طعوم متنوعة', price: 15, subCat: 'مسليات وكانزات', icon: '🥔' },
+          { id: 'def_12', name: 'مسحوق غسيل أوتوماتيك 1 ك', price: 60, subCat: 'منظفات', icon: '🧼' },
+          { id: 'def_13', name: 'العاب أطفال', price: 5, subCat: 'العاب', icon: '🎮' },
+          { id: 'def_14', name: 'فلفل أسود', price: 22, subCat: 'عطاره', icon: '🌿' }
+        ]
+      },
+      'الهدايا': {
+        name: 'الهدايا',
+        type: 'catalog',
+        emoji: '🎁',
+        subCategories: ['مناسبات مختلفة'],
+        items: [
+          { id: 'def_g1', name: 'عروسة أطفال فاخرة', price: 100, subCat: 'مناسبات مختلفة', icon: '🎁' }
+        ]
+      },
+      'المطاعم': {
+        name: 'المطاعم',
+        type: 'restaurants',
+        emoji: '🍔',
+        subCategories: [],
+        items: [
+          { id: 'def_r1', name: 'مطعم الفيومي للفطائر', notes: 'فطير مشلتت وحادق وكريب وبيتزا', badge: 'معتمد' },
+          { id: 'def_r2', name: 'مطعم كشري البلد', notes: 'كشري مخصوص وطواجن مكرونة سخنة', badge: 'معتمد' },
+          { id: 'def_r3', name: 'مطعم مشويات البلد', notes: 'كباب وكفتة وفراخ مشوية على الفحم', badge: 'معتمد' }
+        ]
+      },
+      'الصيدليات': {
+        name: 'الصيدليات',
+        type: 'pharmacies',
+        emoji: '💊',
+        subCategories: [],
+        items: [
+          { id: 'def_p1', name: 'صيدلية عبدالكريم' },
+          { id: 'def_p2', name: 'صيدلية أحمد عبدالعليم' },
+          { id: 'def_p3', name: 'صيدلية هبة' }
+        ]
+      }
+    };
+
+    let catalogDepartments = DEFAULT_DEPARTMENTS;
+    let activeMainTab = 'الماركت';
+    let activeSubFilter = 'all';
 
     let cart = [];
     let userGPSLocationUrl = null;
 
     // ==========================================
-    // INITIALIZATION
+    // INITIALIZATION (IMMEDIATE RENDERING)
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
-      // Load cached departments if available
-      const cached = localStorage.getItem('wasaly_dynamic_departments_v1');
+      // 1. Load cached departments if available, otherwise use defaults
+      const cached = localStorage.getItem('wasaly_dynamic_departments_v3');
       if (cached) {
         try {
-          catalogDepartments = JSON.parse(cached);
-          renderDynamicMainTabs();
+          const parsed = JSON.parse(cached);
+          if (Object.keys(parsed).length > 0) {
+            catalogDepartments = parsed;
+          }
         } catch (e) {}
       }
 
-      syncWithGoogleSheets(false);
+      // 2. Render IMMEDIATELY on load so page is NEVER blank!
+      renderDynamicMainTabs();
       updateCartUI();
+
+      // 3. Sync live data from Google Sheets in background
+      syncWithGoogleSheets(false);
     });
 
     // ==========================================
@@ -311,7 +374,7 @@
     }
 
     // ==========================================
-    // 100% DYNAMIC SHEET SYNC ENGINE
+    // 100% DYNAMIC SHEET SYNC ENGINE (SUPPORTS IMAGES & SUB-CATEGORIES)
     // ==========================================
     async function syncWithGoogleSheets(isManual = false) {
       const syncIcon = document.getElementById('syncIcon');
@@ -379,14 +442,17 @@
         const priceCol = parseFloat(row[2]) || 0;
         const unitCol = (row[3] || '').trim();
         const notesCol = (row[4] || '').trim();
+        const imageCol = (row[5] || '').trim();
 
         if (!nameCol) return;
 
-        // Split "Main Department - Subcategory"
-        // e.g. "ماركت - العاب" -> main: "الماركت", sub: "العاب"
-        // e.g. "هدايا - مناسبات مختلفة" -> main: "الهدايا", sub: "مناسبات مختلفة"
-        // e.g. "مطاعم القرية" -> main: "المطاعم", sub: ""
-        // e.g. "صيدليات القرية" -> main: "الصيدلية", sub: ""
+        let imgUrl = '';
+        if (imageCol.startsWith('http://') || imageCol.startsWith('https://')) {
+          imgUrl = imageCol;
+        } else if (notesCol.startsWith('http://') || notesCol.startsWith('https://')) {
+          imgUrl = notesCol;
+        }
+
         let mainCat = '';
         let subCat = '';
 
@@ -399,7 +465,6 @@
           subCat = 'عام';
         }
 
-        // Clean main category naming for consistency
         if (mainCat.includes('مطعم') || mainCat.includes('مطاعم')) mainCat = 'المطاعم';
         else if (mainCat.includes('صيدل')) mainCat = 'الصيدليات';
         else if (mainCat.includes('ماركت') || mainCat.includes('بقال')) mainCat = 'الماركت';
@@ -428,24 +493,25 @@
           name: nameCol + (unitCol && unitCol !== 'سعر استرشادي' && unitCol !== 'فاتوره' && unitCol !== 'كيلو' && !nameCol.includes(unitCol) ? ` (${unitCol})` : ''),
           price: priceCol,
           subCat: subCat || 'عام',
-          notes: notesCol,
+          notes: notesCol.startsWith('http') ? '' : notesCol,
+          image: imgUrl,
           icon: getEmoji(subCat + ' ' + nameCol)
         });
       });
 
-      // Convert Set of subCategories to Array for storage
       for (const k in newDepartments) {
         newDepartments[k].subCategories = Array.from(newDepartments[k].subCategories);
       }
 
-      catalogDepartments = newDepartments;
-      localStorage.setItem('wasaly_dynamic_departments_v1', JSON.stringify(catalogDepartments));
-
-      renderDynamicMainTabs();
+      if (Object.keys(newDepartments).length > 0) {
+        catalogDepartments = newDepartments;
+        localStorage.setItem('wasaly_dynamic_departments_v3', JSON.stringify(catalogDepartments));
+        renderDynamicMainTabs();
+      }
     }
 
     // ==========================================
-    // RENDER MAIN TABS (AUTO-GENERATED)
+    // RENDER MAIN TABS
     // ==========================================
     function renderDynamicMainTabs() {
       const container = document.getElementById('dynamicMainTabsContainer');
@@ -454,12 +520,10 @@
       const deptKeys = Object.keys(catalogDepartments);
       if (deptKeys.length === 0) return;
 
-      // If activeMainTab is not set or invalid, default to the first one (e.g. الماركت)
       if (!activeMainTab || !catalogDepartments[activeMainTab]) {
         activeMainTab = deptKeys[0];
       }
 
-      // Render tab button for each main department found in Google Sheet
       deptKeys.forEach(deptName => {
         const dept = catalogDepartments[deptName];
         const isActive = activeMainTab === deptName;
@@ -474,7 +538,7 @@
         container.appendChild(btn);
       });
 
-      // Permanent Errand Runner Tab ("مشوار خاص")
+      // Permanent Errand Runner Tab
       const isErrandActive = activeMainTab === 'errand';
       const errandBtn = document.createElement('button');
       errandBtn.className = `tab-btn flex-1 min-w-[70px] py-2 px-1.5 rounded-xl font-bold transition shrink-0 ${isErrandActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
@@ -501,7 +565,7 @@
       const container = document.getElementById('dynamicContentContainer');
       container.innerHTML = '';
 
-      // 1. If Errand Runner Tab is selected
+      // 1. Errand Runner
       if (activeMainTab === 'errand') {
         container.innerHTML = `
           <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
@@ -531,7 +595,7 @@
       const currentDept = catalogDepartments[activeMainTab];
       if (!currentDept) return;
 
-      // 2. If RESTAURANTS
+      // 2. Restaurants
       if (currentDept.type === 'restaurants') {
         const listDiv = document.createElement('div');
         listDiv.className = 'space-y-2.5';
@@ -554,7 +618,7 @@
         return;
       }
 
-      // 3. If PHARMACIES
+      // 3. Pharmacies
       if (currentDept.type === 'pharmacies') {
         const pharmDiv = document.createElement('div');
         pharmDiv.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
@@ -609,16 +673,15 @@
         return;
       }
 
-      // 4. For ANY CATALOG DEPARTMENT (Market, Gifts, Books, Clothes, etc.)
+      // 4. Any Catalog Department (Market, Gifts, Clothes, etc.)
       const sectionDiv = document.createElement('div');
       sectionDiv.className = 'space-y-2.5';
 
-      // A. Dynamic Sub-categories Filter (if more than 1 subcategory exists)
+      // Sub-categories Bar
       if (currentDept.subCategories && currentDept.subCategories.length > 0) {
         const subBar = document.createElement('div');
         subBar.className = 'flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5 text-xs';
 
-        // "الكل" button
         const allBtn = document.createElement('button');
         allBtn.className = `g-filter ${activeSubFilter === 'all' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition`;
         allBtn.textContent = 'الكل';
@@ -643,7 +706,7 @@
         sectionDiv.appendChild(subBar);
       }
 
-      // B. Quick Unlisted Item Box
+      // Quick Request Box
       const quickBox = document.createElement('div');
       quickBox.className = 'bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm flex items-center gap-2';
       quickBox.innerHTML = `
@@ -653,7 +716,7 @@
       `;
       sectionDiv.appendChild(quickBox);
 
-      // C. Grid of Products
+      // Grid of Products (WITH PHOTO SUPPORT!)
       const grid = document.createElement('div');
       grid.className = 'grid grid-cols-2 gap-2.5';
 
@@ -670,15 +733,32 @@
 
           const card = document.createElement('div');
           card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition';
-          card.innerHTML = `
-            <div>
+          
+          let topVisual = '';
+          if (item.image) {
+            topVisual = `
+              <div class="w-full h-24 mb-2 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative">
+                <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                <span class="absolute top-1 left-1 text-[10px] font-bold text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full shadow-sm">
+                  ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
+                </span>
+              </div>
+            `;
+          } else {
+            topVisual = `
               <div class="flex items-start justify-between">
                 <span class="text-2xl">${item.icon || currentDept.emoji}</span>
                 <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                   ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
                 </span>
               </div>
-              <h4 class="font-bold text-xs text-slate-800 mt-2 leading-tight">${item.name}</h4>
+            `;
+          }
+
+          card.innerHTML = `
+            <div>
+              ${topVisual}
+              <h4 class="font-bold text-xs text-slate-800 mt-1.5 leading-tight">${item.name}</h4>
               <p class="text-[10px] text-slate-400 mt-0.5">${item.subCat && item.subCat !== 'عام' ? item.subCat : currentDept.name}</p>
             </div>
 
@@ -930,14 +1010,17 @@
       document.getElementById('summaryGrandTotal').textContent = approxSubtotal + fee;
     }
 
+    // AUTO-HIDE CART BAR WHEN MODAL IS OPEN
     function openCartModal() {
       renderCartModalItems();
       updateDeliveryFee();
+      document.getElementById('cartBar').classList.add('hidden');
       document.getElementById('cartModal').classList.remove('hidden');
     }
 
     function closeCartModal() {
       document.getElementById('cartModal').classList.add('hidden');
+      document.getElementById('cartBar').classList.remove('hidden');
     }
 
     function sendOrderViaWhatsApp() {
