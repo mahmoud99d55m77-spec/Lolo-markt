@@ -47,7 +47,7 @@
     body {
       font-family: 'Cairo', sans-serif;
       -webkit-tap-highlight-color: transparent;
-      padding-bottom: 80px;
+      padding-bottom: 85px;
     }
     .hide-scrollbar::-webkit-scrollbar {
       display: none;
@@ -119,7 +119,7 @@
 
     <!-- ==================== DYNAMIC CONTAINER FOR CONTENT SECTIONS ==================== -->
     <div id="dynamicContentContainer">
-      <!-- Products / Restaurants / Pharmacies / Errand Runner -->
+      <!-- Products / Restaurants / Pharmacies / Errand & Vehicle Fleet -->
     </div>
 
   </main>
@@ -270,16 +270,16 @@
         name: 'الماركت',
         type: 'catalog',
         emoji: '🛒',
-        subCategories: ['ألبان وأجبان', 'أساسيات وسكر وزيت', 'خضار وفاكهة', 'مسليات وكانزات', 'منظفات', 'العاب', 'عطاره'],
+        subCategories: ['ألبان وأجبان', 'بقالة وأساسيات', 'خضار وفاكهة', 'مسليات وكانزات', 'منظفات', 'العاب', 'عطاره'],
         items: [
           { id: 'def_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'ألبان وأجبان', icon: '🧀' },
           { id: 'def_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'ألبان وأجبان', icon: '🧀' },
           { id: 'def_3', name: 'طبق بيض أحمر (30 بيضة)', price: 160, subCat: 'ألبان وأجبان', icon: '🥚' },
           { id: 'def_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'ألبان وأجبان', icon: '🥛' },
-          { id: 'def_5', name: 'سكر أبيض نقي 1 ك', price: 35, subCat: 'أساسيات وسكر وزيت', icon: '🍚' },
-          { id: 'def_6', name: 'شاي العروسة ناعم ربع ك', price: 45, subCat: 'أساسيات وسكر وزيت', icon: '☕' },
-          { id: 'def_7', name: 'زيت قلية خليط 700 مل', price: 55, subCat: 'أساسيات وسكر وزيت', icon: '🌻' },
-          { id: 'def_8', name: 'أرز بلدي فاخر 1 ك', price: 32, subCat: 'أساسيات وسكر وزيت', icon: '🌾' },
+          { id: 'def_5', name: 'سكر أبيض نقي 1 ك', price: 35, subCat: 'بقالة وأساسيات', icon: '🍚' },
+          { id: 'def_6', name: 'شاي العروسة ناعم ربع ك', price: 45, subCat: 'بقالة وأساسيات', icon: '☕' },
+          { id: 'def_7', name: 'زيت قلية خليط 700 مل', price: 55, subCat: 'بقالة وأساسيات', icon: '🌻' },
+          { id: 'def_8', name: 'أرز بلدي فاخر 1 ك', price: 32, subCat: 'بقالة وأساسيات', icon: '🌾' },
           { id: 'def_9', name: 'طماطم بلدي طازجة 1 ك', price: 20, subCat: 'خضار وفاكهة', icon: '🍅' },
           { id: 'def_10', name: 'بطاطس تحمير فاخرة 1 ك', price: 25, subCat: 'خضار وفاكهة', icon: '🥔' },
           { id: 'def_11', name: 'شيبسي عائلي طعوم متنوعة', price: 15, subCat: 'مسليات وكانزات', icon: '🥔' },
@@ -321,6 +321,19 @@
       }
     };
 
+    // VEHICLE FLEET LIST
+    const VEHICLE_OPTIONS = [
+      { id: 'toktok', name: 'توك توك', icon: '🛺', desc: 'مشاوير سريعة داخل القرية والعزب المجاورة', badge: 'الأكثر طلباً' },
+      { id: 'motorcycle', name: 'موتوسيكل', icon: '🛵', desc: 'مشاوير سريعة وطلبات خفيفة وتوصيل فوري', badge: 'سريع' },
+      { id: 'private_car', name: 'سيارة خاصة (ملاكي)', icon: '🚗', desc: 'مشاوير عائلية، مطار، طوارئ، ومراكز المحافظة', badge: 'ملاكي' },
+      { id: 'microbus', name: 'سيارة ميكروباص', icon: '🚐', desc: 'توصيل مجموعات، رحلات عائلية، مناسبات ونقل ركاب', badge: 'مجموعات' },
+      { id: 'quarter_truck', name: 'سيارة ربع نقل (دبابة)', icon: '🛻', desc: 'نقل بضائع، أغراض خفيفة، عفش، أجهزة ومعدات', badge: 'نقل بضائع' },
+      { id: 'half_truck', name: 'سيارة نص نقل (جامبو)', icon: '🚚', desc: 'نقل أحمال ثقيلة، غلال، مواشي، ومواد بناء وتجارة', badge: 'حمولة ثقيلة' }
+    ];
+
+    let selectedVehicleId = 'toktok';
+    let vehicleTimeChoice = 'now';
+
     let catalogDepartments = DEFAULT_DEPARTMENTS;
     let activeMainTab = 'الماركت';
     let activeSubFilter = 'all';
@@ -328,11 +341,19 @@
     let cart = [];
     let userGPSLocationUrl = null;
 
+    // Prescription Upload State
+    let pharmacyUploadState = {
+      file: null,
+      previewUrl: '',
+      remoteUrl: '',
+      isUploading: false
+    };
+
     // ==========================================
     // INITIALIZATION (IMMEDIATE RENDERING)
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
-      // 1. Load cached departments if available, otherwise use defaults
+      // 1. Load cached departments if available
       const cached = localStorage.getItem('wasaly_dynamic_departments_v3');
       if (cached) {
         try {
@@ -343,7 +364,7 @@
         } catch (e) {}
       }
 
-      // 2. Render IMMEDIATELY on load so page is NEVER blank!
+      // 2. Render IMMEDIATELY
       renderDynamicMainTabs();
       updateCartUI();
 
@@ -374,7 +395,7 @@
     }
 
     // ==========================================
-    // 100% DYNAMIC SHEET SYNC ENGINE (SUPPORTS IMAGES & SUB-CATEGORIES)
+    // 100% DYNAMIC SHEET SYNC ENGINE
     // ==========================================
     async function syncWithGoogleSheets(isManual = false) {
       const syncIcon = document.getElementById('syncIcon');
@@ -397,7 +418,7 @@
       } catch (err) {
         console.warn('Sync issue, using local cache:', err);
         if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        if (isManual) alert('تعذر الاتصال بـ Google Sheets، تأكد من الإنترنت.');
+        if (isManual) alert('تعذر الاتصال بـ Google Sheets، تأكد من اتصال الإنترنت.');
       } finally {
         if (syncIcon) syncIcon.classList.remove('animate-spin-slow');
       }
@@ -520,7 +541,7 @@
       const deptKeys = Object.keys(catalogDepartments);
       if (deptKeys.length === 0) return;
 
-      if (!activeMainTab || !catalogDepartments[activeMainTab]) {
+      if (!activeMainTab || (!catalogDepartments[activeMainTab] && activeMainTab !== 'errand')) {
         activeMainTab = deptKeys[0];
       }
 
@@ -538,13 +559,13 @@
         container.appendChild(btn);
       });
 
-      // Permanent Errand Runner Tab
+      // Permanent Errand / Vehicle Fleet Tab
       const isErrandActive = activeMainTab === 'errand';
       const errandBtn = document.createElement('button');
-      errandBtn.className = `tab-btn flex-1 min-w-[70px] py-2 px-1.5 rounded-xl font-bold transition shrink-0 ${isErrandActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
+      errandBtn.className = `tab-btn flex-1 min-w-[75px] py-2 px-1.5 rounded-xl font-bold transition shrink-0 ${isErrandActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
       errandBtn.innerHTML = `
-        <span class="block text-sm leading-none mb-0.5">🛵</span>
-        <span class="text-[11px] whitespace-nowrap">مشوار خاص</span>
+        <span class="block text-sm leading-none mb-0.5">🚖</span>
+        <span class="text-[11px] whitespace-nowrap">مشوار ومواصلات</span>
       `;
       errandBtn.onclick = () => selectMainTab('errand');
       container.appendChild(errandBtn);
@@ -565,115 +586,499 @@
       const container = document.getElementById('dynamicContentContainer');
       container.innerHTML = '';
 
-      // 1. Errand Runner
+      // 1. VEHICLE FLEET & ERRAND DISPATCH
       if (activeMainTab === 'errand') {
-        container.innerHTML = `
-          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
-            <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-              <span class="text-xl">🛵</span>
-              <div>
-                <h3 class="font-extrabold text-sm text-slate-800">مشوار خاص (هاتلي أي حاجة)</h3>
-                <p class="text-[10px] text-slate-400">شراء أو نقل أي غرض من أي مكان داخل وخارج الغريزات</p>
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">المكان المطلوب الشراء أو النقل منه:</label>
-              <input type="text" id="errandFromInput" placeholder="مثلاً: مخبز كذا، ورشة، أو المركز..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">تفاصيل المشوار والطلبات:</label>
-              <textarea id="errandDetailsInput" rows="2.5" placeholder="اكتب طلباتك بدقة..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
-            </div>
-            <button onclick="addErrandOrder()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
-              أضف المشوار للسلة
-            </button>
-          </div>
-        `;
+        renderErrandAndVehiclesSection(container);
         return;
       }
 
       const currentDept = catalogDepartments[activeMainTab];
       if (!currentDept) return;
 
-      // 2. Restaurants
+      // 2. RESTAURANTS
       if (currentDept.type === 'restaurants') {
-        const listDiv = document.createElement('div');
-        listDiv.className = 'space-y-2.5';
-
-        currentDept.items.forEach(rest => {
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3';
-          card.innerHTML = `
-            <div class="flex-1">
-              <h4 class="font-extrabold text-xs sm:text-sm text-slate-800">${rest.name}</h4>
-              <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">${rest.notes || 'مأكولات ووجبات طازجة'}</p>
-            </div>
-            <button onclick="startRestaurantOrder('${rest.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs active:scale-95 transition shrink-0">
-              اطلب الآن
-            </button>
-          `;
-          listDiv.appendChild(card);
-        });
-        container.appendChild(listDiv);
+        renderRestaurantsSection(container, currentDept);
         return;
       }
 
-      // 3. Pharmacies
+      // 3. PHARMACIES & PRESCRIPTION UPLOAD
       if (currentDept.type === 'pharmacies') {
-        const pharmDiv = document.createElement('div');
-        pharmDiv.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
-        
-        let radiosHTML = '';
-        currentDept.items.forEach((p, idx) => {
-          radiosHTML += `
-            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer text-xs">
-              <input type="radio" name="pharmacyChoice" value="${p.name}" ${idx === 0 ? 'checked' : ''} onchange="toggleOtherPharmacy(false)" class="text-blue-600">
-              <span>${p.name}</span>
-            </label>
-          `;
-        });
+        renderPharmaciesSection(container, currentDept);
+        return;
+      }
+
+      // 4. CATALOG DEPARTMENTS (Market, Gifts, etc.)
+      renderCatalogSection(container, currentDept);
+    }
+
+    // ========================================================
+    // SECTION 1: VEHICLE FLEET & ERRAND DISPATCH (مشوار خاص)
+    // ========================================================
+    function renderErrandAndVehiclesSection(container) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4';
+
+      let vehicleCardsHTML = '';
+      VEHICLE_OPTIONS.forEach(v => {
+        const isSelected = selectedVehicleId === v.id;
+        vehicleCardsHTML += `
+          <div onclick="selectVehicle('${v.id}')" data-vehicle-id="${v.id}" class="vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${isSelected ? 'border-brand-600 bg-brand-50/50 shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-white'}">
+            <div class="flex items-start justify-between">
+              <span class="text-2xl">${v.icon}</span>
+              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}">${v.badge}</span>
+            </div>
+            <div class="mt-2">
+              <h4 class="font-black text-xs text-slate-900 flex items-center justify-between">
+                <span>${v.name}</span>
+                <span class="check-mark text-brand-600 text-xs ${isSelected ? '' : 'hidden'}">✓</span>
+              </h4>
+              <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${v.desc}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
+
+      wrapper.innerHTML = `
+        <!-- Section Header -->
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center text-xl">🚖</div>
+          <div>
+            <h3 class="font-black text-sm text-slate-900">خدمة المشاوير وحجز المواصلات</h3>
+            <p class="text-[11px] text-slate-400">اختر وسيلة المواصلات المناسبة وسيصلك المندوب أو السائق فوراً</p>
+          </div>
+        </div>
+
+        <!-- Vehicle Fleet Grid -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-2">اختر وسيلة المواصلات المطلوبة:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            ${vehicleCardsHTML}
+          </div>
+        </div>
+
+        <!-- Selected Vehicle Confirmation -->
+        <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900 font-bold">
+          <span id="selectedVehicleSummary">الوسيلة المختارة: <strong>${activeVehObj.icon} ${activeVehObj.name}</strong></span>
+          <span class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">سعر المشوار بالاتفاق</span>
+        </div>
+
+        <!-- Ride Details Form -->
+        <div class="space-y-2.5 pt-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">مكان الركوب أو الشراء (منين؟) *</label>
+              <input type="text" id="errandFromInput" placeholder="مثلاً: الغريزات - الشارع القبلي أو بجوار المسجد..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">مكان الوصول أو الوجهة (على فين؟) *</label>
+              <input type="text" id="errandToInput" placeholder="مثلاً: محطة طهطا، المركز، المستشفى، قرية أخرى..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+            </div>
+          </div>
+
+          <!-- Ride Timing Choice -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">موعد المشوار:</label>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 font-bold cursor-pointer">
+                <input type="radio" name="vehicleTime" value="now" ${vehicleTimeChoice === 'now' ? 'checked' : ''} onchange="vehicleTimeChoice='now'" class="text-brand-600">
+                <span>فوري الآن ⚡</span>
+              </label>
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer">
+                <input type="radio" name="vehicleTime" value="later" ${vehicleTimeChoice === 'later' ? 'checked' : ''} onchange="vehicleTimeChoice='later'" class="text-brand-600">
+                <span>موعد محدد لاحقاً 🕒</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Customer Name & Phone -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input type="text" id="errandCustName" placeholder="الاسم بالكامل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+            <input type="tel" id="errandCustPhone" placeholder="رقم الهاتف للتواصل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold" dir="ltr">
+          </div>
+
+          <!-- Ride Notes -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">تفاصيل إضافية أو حمولة (اختياري):</label>
+            <textarea id="errandDetailsInput" rows="2" placeholder="عدد الركاب، نوع البضاعة المراد نقلها، أو أي طلب خاص..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
+          </div>
+
+          <!-- GPS Location -->
+          <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition active:scale-95">
+            <span>📍</span>
+            <span id="errandGpsText">تحديد موقعي الحالي بدقة على الخريطة (GPS)</span>
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <!-- Direct WhatsApp Dispatch -->
+          <button onclick="dispatchVehicleOrderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span>طلب وسيلة المواصلات عبر واتساب فوراً 💬</span>
+          </button>
+
+          <!-- Add to Cart Alternative -->
+          <button onclick="addVehicleOrderToCart()" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-300 flex items-center justify-center gap-1.5 transition">
+            <span>🛒</span>
+            <span>أو إضافة المشوار لسلة الطلبات</span>
+          </button>
+        </div>
+      `;
+
+      container.appendChild(wrapper);
+    }
+
+    function selectVehicle(id) {
+      selectedVehicleId = id;
+      const cards = document.querySelectorAll('.vehicle-card');
+      cards.forEach(card => {
+        const vId = card.getAttribute('data-vehicle-id');
+        const check = card.querySelector('.check-mark');
+        const badge = card.querySelector('span.rounded-full');
+        if (vId === id) {
+          card.className = 'vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between border-brand-600 bg-brand-50/50 shadow-sm';
+          if (check) check.classList.remove('hidden');
+          if (badge) {
+            badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-brand-600 text-white';
+          }
+        } else {
+          card.className = 'vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between border-slate-200 bg-slate-50 hover:bg-white';
+          if (check) check.classList.add('hidden');
+          if (badge) {
+            badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600';
+          }
+        }
+      });
+      const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
+      const summary = document.getElementById('selectedVehicleSummary');
+      if (summary) {
+        summary.innerHTML = `الوسيلة المختارة: <strong>${activeVehObj.icon} ${activeVehObj.name}</strong>`;
+      }
+    }
+
+    // Direct WhatsApp Dispatch for Ride Request
+    function dispatchVehicleOrderViaWhatsApp() {
+      const fromLoc = document.getElementById('errandFromInput')?.value.trim() || '';
+      const toLoc = document.getElementById('errandToInput')?.value.trim() || '';
+      const name = document.getElementById('errandCustName')?.value.trim() || '';
+      const phone = document.getElementById('errandCustPhone')?.value.trim() || '';
+      const details = document.getElementById('errandDetailsInput')?.value.trim() || '';
+
+      if (!fromLoc || !toLoc) {
+        alert('من فضلك حدد مكان الركوب (منين) ومكان الوصول (على فين).');
+        return;
+      }
+      if (!name || !phone) {
+        alert('من فضلك اكتب اسمك ورقم هاتفك للتواصل.');
+        return;
+      }
+
+      const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
+      const timeText = vehicleTimeChoice === 'now' ? 'فوري (الآن ⚡)' : 'حجز موعد لاحق 🕒';
+
+      let msg = `🚖 *طلب مشوار / وسيلة مواصلات - تسوق الغريزات*\n`;
+      msg += `📍 *القرية:* الغريزات وما حولها\n`;
+      msg += `---------------------------------\n`;
+      msg += `🛺 *وسيلة المواصلات المطلوبة:* ${activeVehObj.icon} ${activeVehObj.name}\n`;
+      msg += `👤 *العميل:* ${name}\n`;
+      msg += `📞 *الهاتف للتواصل:* ${phone}\n`;
+      msg += `📍 *مكان الركوب / الشراء (من):* ${fromLoc}\n`;
+      msg += `🏁 *مكان الوصول / الوجهة (إلى):* ${toLoc}\n`;
+      msg += `⏱️ *الموعد:* ${timeText}\n`;
+      if (details) msg += `📝 *تفاصيل وحمولة:* ${details}\n`;
+      if (userGPSLocationUrl) msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
+      msg += `---------------------------------\n`;
+      msg += `⚠️ _الاتفاق على الأجرة والميعاد يتم عبر الواتساب فور استلام الطلب._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
+    function addVehicleOrderToCart() {
+      const fromLoc = document.getElementById('errandFromInput')?.value.trim() || '';
+      const toLoc = document.getElementById('errandToInput')?.value.trim() || '';
+      const details = document.getElementById('errandDetailsInput')?.value.trim() || '';
+
+      if (!fromLoc && !toLoc && !details) {
+        alert('اكتب تفاصيل المشوار أو المكان المطلوب أولاً.');
+        return;
+      }
+
+      const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
+
+      cart.push({
+        id: 'vehicle_' + Date.now(),
+        type: 'special_errand',
+        name: `مشوار [${activeVehObj.name}]: من (${fromLoc || 'الغريزات'}) إلى (${toLoc || 'المركز'}) ${details ? `- ${details}` : ''}`,
+        price: 0,
+        qty: 1
+      });
+
+      updateCartUI();
+      openCartModal();
+    }
+
+    // ========================================================
+    // SECTION 2: PHARMACIES & IMAGE UPLOAD HANDLING
+    // ========================================================
+    function renderPharmaciesSection(container, currentDept) {
+      const pharmDiv = document.createElement('div');
+      pharmDiv.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+      
+      let radiosHTML = '';
+      currentDept.items.forEach((p, idx) => {
         radiosHTML += `
-          <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 cursor-pointer text-xs">
-            <input type="radio" name="pharmacyChoice" value="other" onchange="toggleOtherPharmacy(true)" class="text-blue-600">
-            <span>أخرى</span>
+          <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer text-xs">
+            <input type="radio" name="pharmacyChoice" value="${p.name}" ${idx === 0 ? 'checked' : ''} onchange="toggleOtherPharmacy(false)" class="text-blue-600">
+            <span>${p.name}</span>
           </label>
         `;
+      });
+      radiosHTML += `
+        <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 cursor-pointer text-xs">
+          <input type="radio" name="pharmacyChoice" value="other" onchange="toggleOtherPharmacy(true)" class="text-blue-600">
+          <span>صيدلية أخرى</span>
+        </label>
+      `;
 
-        pharmDiv.innerHTML = `
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-            <span class="text-xl">💊</span>
-            <div>
-              <h3 class="font-extrabold text-sm text-slate-800">طلب علاج أو روشتة</h3>
-              <p class="text-[10px] text-slate-400">توصيل رسمي بسعر العلبة المدون بالفاتورة</p>
-            </div>
-          </div>
+      pharmDiv.innerHTML = `
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+          <span class="text-xl">💊</span>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الصيدلية:</label>
-            <div class="grid grid-cols-2 gap-2 text-xs">${radiosHTML}</div>
-            <div id="otherPharmacyContainer" class="hidden mt-2">
-              <input type="text" id="otherPharmacyInput" placeholder="اكتب اسم الصيدلية الأخرى..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
-            </div>
+            <h3 class="font-extrabold text-sm text-slate-800">طلب علاج أو روشتة</h3>
+            <p class="text-[10px] text-slate-400">توصيل رسمي بسعر العلبة المدون بالفاتورة الأصلية</p>
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">اسم العلاج أو تفاصيل الروشتة:</label>
-            <textarea id="pharmacyNotesInput" rows="2" placeholder="اكتب أسماء الأدوية أو ارفق صورة الروشتة..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الصيدلية:</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">${radiosHTML}</div>
+          <div id="otherPharmacyContainer" class="hidden mt-2">
+            <input type="text" id="otherPharmacyInput" placeholder="اكتب اسم الصيدلية الأخرى بالقرية..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
           </div>
-          <div>
-            <label class="flex items-center justify-center gap-2 border border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 rounded-xl p-2.5 text-xs text-blue-700 font-bold cursor-pointer transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span id="pharmacyPhotoLabel">تصوير الروشتة بالكاميرا 📷</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">اسم العلاج أو تفاصيل الروشتة (اختياري مع الصورة):</label>
+          <textarea id="pharmacyNotesInput" rows="2" placeholder="اكتب أسماء الأدوية المطلوبة أو الجرعات..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
+        </div>
+
+        <!-- PRESCRIPTION PHOTO UPLOAD BOX -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">تصوير الروشتة أو علبة الدواء:</label>
+          
+          <div id="uploadPhotoContainer">
+            <label class="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 rounded-2xl p-3 text-xs text-blue-700 font-bold cursor-pointer transition">
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span id="pharmacyPhotoLabel">التقاط صورة الروشتة بالكاميرا أو المعرض 📷</span>
+              <span class="text-[10px] text-blue-500 font-normal">يتم رفع الصورة تلقائياً وتوليد رابط يفتح في الواتساب</span>
               <input type="file" id="pharmacyPhotoInput" accept="image/*" class="hidden" onchange="handlePharmacyPhotoUpload(this)">
             </label>
           </div>
-          <button onclick="addPharmacyOrder()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
-            إضافة طلب الصيدلية للسلة
-          </button>
-        `;
-        container.appendChild(pharmDiv);
+
+          <!-- Preview & Upload Status -->
+          <div id="photoPreviewContainer" class="hidden mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img id="prescriptionThumbnail" src="" class="w-12 h-12 object-cover rounded-lg border border-slate-300">
+              <div>
+                <p id="uploadStatusBadge" class="text-xs font-bold text-slate-800">تم اختيار الصورة</p>
+                <p id="uploadStatusSub" class="text-[10px] text-slate-400">جاهزة للإرسال</p>
+              </div>
+            </div>
+            <button onclick="removePharmacyPhoto()" class="text-red-500 hover:text-red-700 font-bold text-xs p-1">إلغاء ✕</button>
+          </div>
+        </div>
+
+        <button onclick="addPharmacyOrder()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
+          إضافة طلب الروشتة للسلة 🛒
+        </button>
+      `;
+      container.appendChild(pharmDiv);
+    }
+
+    // IMAGE COMPRESSION & UPLOAD ENGINE
+    async function compressImageFile(file, maxDimension = 1200, quality = 0.8) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              resolve(blob || file);
+            }, 'image/jpeg', quality);
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePharmacyPhotoUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      const rawFile = input.files[0];
+
+      const previewBox = document.getElementById('photoPreviewContainer');
+      const thumb = document.getElementById('prescriptionThumbnail');
+      const badge = document.getElementById('uploadStatusBadge');
+      const sub = document.getElementById('uploadStatusSub');
+
+      if (previewBox) previewBox.classList.remove('hidden');
+      if (thumb) thumb.src = URL.createObjectURL(rawFile);
+      if (badge) badge.textContent = '⏳ جارٍ رفع صورة الروشتة وتوليد الرابط...';
+      if (sub) sub.textContent = 'يرجى الانتظار ثوانٍ قليلة';
+
+      pharmacyUploadState.file = rawFile;
+      pharmacyUploadState.isUploading = true;
+      pharmacyUploadState.remoteUrl = '';
+
+      try {
+        // 1. Fast local canvas compression (reduces 10MB to ~150KB)
+        const compressedBlob = await compressImageFile(rawFile, 1200, 0.78);
+
+        // 2. Upload to public image host (tmpfiles.org)
+        const formData = new FormData();
+        formData.append('file', compressedBlob, 'prescription_' + Date.now() + '.jpg');
+
+        const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (uploadRes.ok) {
+          const json = await uploadRes.json();
+          if (json && json.data && json.data.url) {
+            // Convert tmpfiles.org/123/img.jpg to direct link tmpfiles.org/dl/123/img.jpg
+            let directUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+            pharmacyUploadState.remoteUrl = directUrl;
+            if (badge) badge.textContent = '✅ تم رفع الصورة بنجاح!';
+            if (sub) sub.innerHTML = `<a href="${directUrl}" target="_blank" class="text-blue-600 underline font-bold">معاينة رابط الصورة</a>`;
+            return;
+          }
+        }
+        throw new Error('Upload server error');
+      } catch (err) {
+        console.warn('Image host upload fallback:', err);
+        if (badge) badge.textContent = '📷 الصورة محفوظة على هاتفك';
+        if (sub) sub.textContent = 'يرجى إرفاقها مباشرة داخل محادثة الواتساب 📎';
+      } finally {
+        pharmacyUploadState.isUploading = false;
+      }
+    }
+
+    function removePharmacyPhoto() {
+      pharmacyUploadState = { file: null, previewUrl: '', remoteUrl: '', isUploading: false };
+      const previewBox = document.getElementById('photoPreviewContainer');
+      const input = document.getElementById('pharmacyPhotoInput');
+      if (previewBox) previewBox.classList.add('hidden');
+      if (input) input.value = '';
+    }
+
+    function toggleOtherPharmacy(show) {
+      const container = document.getElementById('otherPharmacyContainer');
+      if (container) {
+        if (show) container.classList.remove('hidden');
+        else container.classList.add('hidden');
+      }
+    }
+
+    function addPharmacyOrder() {
+      const choiceRadio = document.querySelector('input[name="pharmacyChoice"]:checked');
+      let pharmName = choiceRadio ? choiceRadio.value : 'أقرب صيدلية';
+      
+      if (pharmName === 'other') {
+        const otherVal = document.getElementById('otherPharmacyInput')?.value.trim();
+        pharmName = otherVal ? `صيدلية ${otherVal}` : 'صيدلية أخرى بالقرية';
+      }
+
+      const pharmNotes = document.getElementById('pharmacyNotesInput')?.value.trim() || '';
+      const hasPhoto = !!pharmacyUploadState.file;
+
+      if (!pharmNotes && !hasPhoto) {
+        alert('اكتب أسماء الأدوية أو التقط صورة الروشتة أولاً.');
         return;
       }
 
-      // 4. Any Catalog Department (Market, Gifts, Clothes, etc.)
+      cart.push({
+        id: 'pharm_' + Date.now(),
+        type: 'pharmacy_order',
+        name: `طلب من (${pharmName}): ${pharmNotes || 'روشتة علاج مرفقة'}`,
+        price: 0,
+        qty: 1,
+        hasImage: hasPhoto,
+        imageUrl: pharmacyUploadState.remoteUrl || ''
+      });
+
+      // Reset upload for next items
+      removePharmacyPhoto();
+
+      updateCartUI();
+      openCartModal();
+    }
+
+    // ========================================================
+    // SECTION 3: RESTAURANTS
+    // ========================================================
+    function renderRestaurantsSection(container, currentDept) {
+      const listDiv = document.createElement('div');
+      listDiv.className = 'space-y-2.5';
+
+      currentDept.items.forEach(rest => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3';
+        card.innerHTML = `
+          <div class="flex-1">
+            <h4 class="font-extrabold text-xs sm:text-sm text-slate-800">${rest.name}</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">${rest.notes || 'وجبات ومأكولات طازجة'}</p>
+          </div>
+          <button onclick="startRestaurantOrder('${rest.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs active:scale-95 transition shrink-0">
+            اطلب الآن
+          </button>
+        `;
+        listDiv.appendChild(card);
+      });
+      container.appendChild(listDiv);
+    }
+
+    function startRestaurantOrder(restName) {
+      const itemText = prompt(`اكتب وجبتك بالتفصيل من (${restName}):\n(مثلاً: 1 فطيرة مشلتت، أو 2 كشري...)`, '');
+      if (itemText && itemText.trim()) {
+        cart.push({
+          id: 'rest_' + Date.now(),
+          type: 'restaurant_order',
+          name: `طلب من ${restName}: ${itemText.trim()}`,
+          price: 0,
+          qty: 1
+        });
+        updateCartUI();
+        openCartModal();
+      }
+    }
+
+    // ========================================================
+    // SECTION 4: CATALOG DEPARTMENTS
+    // ========================================================
+    function renderCatalogSection(container, currentDept) {
       const sectionDiv = document.createElement('div');
       sectionDiv.className = 'space-y-2.5';
 
@@ -843,110 +1248,37 @@
       openCartModal();
     }
 
-    function startRestaurantOrder(restName) {
-      const itemText = prompt(`اكتب وجبتك بالتفصيل من (${restName}):\n(مثلاً: 1 فطيرة مشلتت، أو 2 كشري...)`, '');
-      if (itemText && itemText.trim()) {
-        cart.push({
-          id: 'rest_' + Date.now(),
-          type: 'restaurant_order',
-          name: `طلب من ${restName}: ${itemText.trim()}`,
-          price: 0,
-          qty: 1
-        });
-        updateCartUI();
-        openCartModal();
-      }
-    }
-
-    let pharmacyPhotoAttached = false;
-    function handlePharmacyPhotoUpload(input) {
-      if (input.files && input.files[0]) {
-        pharmacyPhotoAttached = true;
-        document.getElementById('pharmacyPhotoLabel').textContent = 'تم اختيار صورة الروشتة ✅';
-      }
-    }
-
-    function toggleOtherPharmacy(show) {
-      const container = document.getElementById('otherPharmacyContainer');
-      if (container) {
-        if (show) container.classList.remove('hidden');
-        else container.classList.add('hidden');
-      }
-    }
-
-    function addPharmacyOrder() {
-      const choiceRadio = document.querySelector('input[name="pharmacyChoice"]:checked');
-      let pharmName = choiceRadio ? choiceRadio.value : 'أقرب صيدلية';
-      
-      if (pharmName === 'other') {
-        const otherVal = document.getElementById('otherPharmacyInput').value.trim();
-        pharmName = otherVal ? `صيدلية ${otherVal}` : 'صيدلية أخرى بالقرية';
-      }
-
-      const pharmNotes = document.getElementById('pharmacyNotesInput').value.trim();
-      if (!pharmNotes && !pharmacyPhotoAttached) {
-        alert('اكتب أسماء الأدوية أو صور الروشتة أولاً.');
-        return;
-      }
-
-      cart.push({
-        id: 'pharm_' + Date.now(),
-        type: 'pharmacy_order',
-        name: `طلب من (${pharmName}): ${pharmNotes || 'روشتة علاج مرفقة بالصورة'}`,
-        price: 0,
-        qty: 1,
-        hasImage: pharmacyPhotoAttached
-      });
-
-      updateCartUI();
-      openCartModal();
-    }
-
-    function addErrandOrder() {
-      const fromLoc = document.getElementById('errandFromInput').value.trim();
-      const details = document.getElementById('errandDetailsInput').value.trim();
-
-      if (!details) {
-        alert('اكتب تفاصيل المشوار أو الحاجة المطلوبة.');
-        return;
-      }
-
-      cart.push({
-        id: 'errand_' + Date.now(),
-        type: 'special_errand',
-        name: `مشوار خاص [من: ${fromLoc || 'أي مكان'}]: ${details}`,
-        price: 0,
-        qty: 1
-      });
-
-      updateCartUI();
-      openCartModal();
-    }
-
     // GPS Location
     function captureGPSLocation() {
       const btnText = document.getElementById('btnGetLocationText');
       const hint = document.getElementById('locationStatusHint');
+      const errandGps = document.getElementById('errandGpsText');
 
       if (!navigator.geolocation) {
         alert('خاصية تحديد الموقع غير مدعومة في متصفحك.');
         return;
       }
 
-      btnText.textContent = 'جارٍ تحديد الموقع عبر الأقمار الصناعية...';
+      if (btnText) btnText.textContent = 'جارٍ تحديد الموقع عبر الأقمار الصناعية...';
+      if (errandGps) errandGps.textContent = 'جارٍ تحديد الموقع...';
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           userGPSLocationUrl = `https://maps.google.com/?q=${lat},${lng}`;
           
-          btnText.textContent = '✅ تم تحديد موقعك بدقة (انقر للتغيير)';
-          hint.textContent = 'تم حفظ الإحداثيات وسيتم إرسال رابط الخريطة مع الطلب في واتساب';
-          hint.className = 'text-[10px] text-emerald-600 font-bold mt-1 text-center';
+          if (btnText) btnText.textContent = '✅ تم تحديد موقعك بدقة (انقر للتغيير)';
+          if (errandGps) errandGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
+          if (hint) {
+            hint.textContent = 'تم حفظ الإحداثيات وسيتم إرسال رابط الخريطة مع الطلب في واتساب';
+            hint.className = 'text-[10px] text-emerald-600 font-bold mt-1 text-center';
+          }
         },
         (error) => {
           console.warn('Geolocation error:', error);
-          btnText.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          if (btnText) btnText.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          if (errandGps) errandGps.textContent = '📍 تحديد موقعي على الخريطة (GPS)';
           alert('يرجى السماح للتطبيق بالوصول للموقع عند طلب المتصفح لتفعيل الميزة.');
         },
         { enableHighAccuracy: true, timeout: 10000 }
@@ -978,7 +1310,9 @@
         itemRow.className = 'flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs';
         
         let subText = item.price > 0 ? `~ ${item.price * item.qty} ج` : 'حسب الفاتورة';
-        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'restaurant_order' ? '🍔' : item.type === 'special_errand' ? '🛵' : '🛍️';
+        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'restaurant_order' ? '🍔' : item.type === 'special_errand' ? '🚖' : '🛍️';
+
+        let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة روشتة مرفقة</span>` : '');
 
         itemRow.innerHTML = `
           <div class="flex items-center gap-1.5 flex-1 pr-1 truncate">
@@ -986,6 +1320,7 @@
             <div class="truncate">
               <p class="font-bold text-slate-800 text-xs truncate">${item.name}</p>
               <p class="text-[10px] text-slate-400">${item.qty} × <span class="text-emerald-700 font-bold">${subText}</span></p>
+              ${photoIndicator}
             </div>
           </div>
           <button onclick="removeCartItem(${idx})" class="text-red-500 hover:text-red-700 font-bold text-xs p-1">✕</button>
@@ -1061,8 +1396,14 @@
 
       cart.forEach((item, idx) => {
         let priceTag = item.price > 0 ? `(~${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
-        let imgTag = item.hasImage ? ` [📷 مرفق صورة]` : ``;
-        msg += `${idx + 1}. ${item.qty} × ${item.name} ${priceTag}${imgTag}\n`;
+        msg += `${idx + 1}. ${item.qty} × ${item.name} ${priceTag}\n`;
+        
+        // DIRECT CLICKABLE IMAGE LINK IN WHATSAPP!
+        if (item.imageUrl) {
+          msg += `   📷 *رابط صورة الروشتة/الطلب:* ${item.imageUrl}\n`;
+        } else if (item.hasImage) {
+          msg += `   📷 *ملاحظة:* يرجى إرسال صورة الروشتة في هذا الشات الآن 📎\n`;
+        }
       });
 
       msg += `---------------------------------\n`;
