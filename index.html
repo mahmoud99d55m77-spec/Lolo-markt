@@ -110,16 +110,16 @@
 
   <main class="max-w-md mx-auto px-4 mt-2.5 space-y-3">
 
-    <!-- ==================== 100% DYNAMIC MAIN NAVIGATION TABS ==================== -->
+    <!-- ==================== 10 MAIN NAVIGATION TABS ==================== -->
     <nav class="bg-white p-1 rounded-2xl border border-slate-200/90 shadow-sm overflow-x-auto hide-scrollbar">
-      <div id="dynamicMainTabsContainer" class="flex items-center gap-1 min-w-full text-center text-xs font-bold">
-        <!-- Rendered dynamically -->
+      <div id="dynamicMainTabsContainer" class="flex items-center gap-1 min-w-max text-center text-xs font-bold">
+        <!-- Rendered dynamically according to exact 10-department order -->
       </div>
     </nav>
 
-    <!-- ==================== DYNAMIC CONTAINER FOR CONTENT SECTIONS ==================== -->
+    <!-- ==================== DYNAMIC CONTAINER FOR ACTIVE DEPARTMENT ==================== -->
     <div id="dynamicContentContainer">
-      <!-- Products / Restaurants / Pharmacies / Errand & Vehicle Fleet -->
+      <!-- Content rendered by JS -->
     </div>
 
   </main>
@@ -249,7 +249,7 @@
   <!-- JAVASCRIPT APPLICATION LOGIC -->
   <script>
     // ==========================================
-    // CONFIGURATION
+    // 1. EXACT CONFIGURATION & ORDERED DEPARTMENTS
     // ==========================================
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0w3R7dVbpK46GOPzFJAfrrtVr-kvEADQg9MVW93rykgTzwTMArg9gDcQWnX4y7Opz_CM4nK8xrxZV/pub?gid=1317727240&single=true&output=csv';
 
@@ -264,75 +264,234 @@
 
     let appConfig = DEFAULT_CONFIG;
 
-    // PRE-POPULATED DEFAULT DEPARTMENTS (Guarantees the app is NEVER blank!)
-    const DEFAULT_DEPARTMENTS = {
-      'الماركت': {
-        name: 'الماركت',
-        type: 'catalog',
-        emoji: '🛒',
-        subCategories: ['ألبان وأجبان', 'بقالة وأساسيات', 'خضار وفاكهة', 'مسليات وكانزات', 'منظفات', 'العاب', 'عطاره'],
-        items: [
-          { id: 'def_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'ألبان وأجبان', icon: '🧀' },
-          { id: 'def_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'ألبان وأجبان', icon: '🧀' },
-          { id: 'def_3', name: 'طبق بيض أحمر (30 بيضة)', price: 160, subCat: 'ألبان وأجبان', icon: '🥚' },
-          { id: 'def_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'ألبان وأجبان', icon: '🥛' },
-          { id: 'def_5', name: 'سكر أبيض نقي 1 ك', price: 35, subCat: 'بقالة وأساسيات', icon: '🍚' },
-          { id: 'def_6', name: 'شاي العروسة ناعم ربع ك', price: 45, subCat: 'بقالة وأساسيات', icon: '☕' },
-          { id: 'def_7', name: 'زيت قلية خليط 700 مل', price: 55, subCat: 'بقالة وأساسيات', icon: '🌻' },
-          { id: 'def_8', name: 'أرز بلدي فاخر 1 ك', price: 32, subCat: 'بقالة وأساسيات', icon: '🌾' },
-          { id: 'def_9', name: 'طماطم بلدي طازجة 1 ك', price: 20, subCat: 'خضار وفاكهة', icon: '🍅' },
-          { id: 'def_10', name: 'بطاطس تحمير فاخرة 1 ك', price: 25, subCat: 'خضار وفاكهة', icon: '🥔' },
-          { id: 'def_11', name: 'شيبسي عائلي طعوم متنوعة', price: 15, subCat: 'مسليات وكانزات', icon: '🥔' },
-          { id: 'def_12', name: 'مسحوق غسيل أوتوماتيك 1 ك', price: 60, subCat: 'منظفات', icon: '🧼' },
-          { id: 'def_13', name: 'العاب أطفال', price: 5, subCat: 'العاب', icon: '🎮' },
-          { id: 'def_14', name: 'فلفل أسود', price: 22, subCat: 'عطاره', icon: '🌿' }
-        ]
-      },
-      'الهدايا': {
-        name: 'الهدايا',
-        type: 'catalog',
-        emoji: '🎁',
-        subCategories: ['مناسبات مختلفة'],
-        items: [
-          { id: 'def_g1', name: 'عروسة أطفال فاخرة', price: 100, subCat: 'مناسبات مختلفة', icon: '🎁' }
-        ]
-      },
-      'المطاعم': {
-        name: 'المطاعم',
-        type: 'restaurants',
-        emoji: '🍔',
-        subCategories: [],
-        items: [
-          { id: 'def_r1', name: 'مطعم الفيومي للفطائر', notes: 'فطير مشلتت وحادق وكريب وبيتزا', badge: 'معتمد' },
-          { id: 'def_r2', name: 'مطعم كشري البلد', notes: 'كشري مخصوص وطواجن مكرونة سخنة', badge: 'معتمد' },
-          { id: 'def_r3', name: 'مطعم مشويات البلد', notes: 'كباب وكفتة وفراخ مشوية على الفحم', badge: 'معتمد' }
-        ]
-      },
-      'الصيدليات': {
-        name: 'الصيدليات',
-        type: 'pharmacies',
-        emoji: '💊',
-        subCategories: [],
-        items: [
-          { id: 'def_p1', name: 'صيدلية عبدالكريم' },
-          { id: 'def_p2', name: 'صيدلية أحمد عبدالعليم' },
-          { id: 'def_p3', name: 'صيدلية هبة' }
-        ]
-      }
+    // THE 10 MAIN DEPARTMENTS IN EXACT USER-REQUESTED ORDER
+    const MAIN_TABS_ORDER = [
+      'الماركت',
+      'المطاعم',
+      'الخضار',
+      'الصيدلية',
+      'المكتبة',
+      'فودافون كاش',
+      'الهدايا',
+      'الخردوات',
+      'التوصيل',
+      'طلب منتج أو خدمة غير متوفرة'
+    ];
+
+    const MAIN_TABS_METADATA = {
+      'الماركت': { emoji: '🛒', shortName: 'الماركت' },
+      'المطاعم': { emoji: '🍔', shortName: 'المطاعم' },
+      'الخضار': { emoji: '🥦', shortName: 'الخضار' },
+      'الصيدلية': { emoji: '💊', shortName: 'الصيدلية' },
+      'المكتبة': { emoji: '📚', shortName: 'المكتبة' },
+      'فودافون كاش': { emoji: '💳', shortName: 'فودافون كاش' },
+      'الهدايا': { emoji: '🎁', shortName: 'الهدايا' },
+      'الخردوات': { emoji: '🧸', shortName: 'الخردوات' },
+      'التوصيل': { emoji: '🛵', shortName: 'التوصيل' },
+      'طلب منتج أو خدمة غير متوفرة': { emoji: '⚡', shortName: 'طلب مخصص' }
     };
 
-    // VEHICLE FLEET LIST
+    // VEHICLE FLEET OPTIONS
     const VEHICLE_OPTIONS = [
       { id: 'toktok', name: 'توك توك', icon: '🛺', desc: 'مشاوير سريعة داخل القرية والعزب المجاورة', badge: 'الأكثر طلباً' },
       { id: 'motorcycle', name: 'موتوسيكل', icon: '🛵', desc: 'مشاوير سريعة وطلبات خفيفة وتوصيل فوري', badge: 'سريع' },
       { id: 'private_car', name: 'سيارة خاصة (ملاكي)', icon: '🚗', desc: 'مشاوير عائلية، مطار، طوارئ، ومراكز المحافظة', badge: 'ملاكي' },
       { id: 'microbus', name: 'سيارة ميكروباص', icon: '🚐', desc: 'توصيل مجموعات، رحلات عائلية، مناسبات ونقل ركاب', badge: 'مجموعات' },
       { id: 'quarter_truck', name: 'سيارة ربع نقل (دبابة)', icon: '🛻', desc: 'نقل بضائع، أغراض خفيفة، عفش، أجهزة ومعدات', badge: 'نقل بضائع' },
-      { id: 'half_truck', name: 'سيارة نص نقل (جامبو)', icon: '🚚', desc: 'نقل أحمال ثقيلة، غلال، مواشي، ومواد بناء وتجارة', badge: 'حمولة ثقيلة' }
+      { id: 'half_truck', name: 'سيارة نص نقل (جامبو)', icon: '🚚', desc: 'نقل أحمال ثقيلة، غلال، مواشي، وبضائع تجارية', badge: 'حمولة ثقيلة' }
     ];
 
     let selectedVehicleId = 'toktok';
     let vehicleTimeChoice = 'now';
+
+    // ==========================================
+    // 2. COMPLETE PRE-POPULATED DEPARTMENTS (FAILSAFE)
+    // ==========================================
+    const DEFAULT_DEPARTMENTS = {
+      'الماركت': {
+        name: 'الماركت',
+        emoji: '🛒',
+        subCategories: ['الألبان', 'المجمدات', 'البقوليات والعطاره', 'التسالي', 'المنظفات', 'بقالة وأساسيات أخرى'],
+        items: [
+          { id: 'm_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1552767059-ce182ead6c1b?w=400' },
+          { id: 'm_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1452195100486-9cc805987862?w=400' },
+          { id: 'm_3', name: 'طبق بيض أحمر مزارع (30 بيضة)', price: 160, subCat: 'الألبان', icon: '🥚', image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400' },
+          { id: 'm_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'الألبان', icon: '🥛', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400' },
+          { id: 'm_5', name: 'زبادي بلدي طازج يومياً', price: 7, subCat: 'الألبان', icon: '🥣', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400' },
+          { id: 'm_6', name: 'جبنة قريش فلاحي طازجة 1 ك', price: 80, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1589881133595-a3c085cb731d?w=400' },
+          { id: 'm_7', name: 'سمنة بلدي فلاحي بقري 1 ك', price: 220, subCat: 'الألبان', icon: '🧈', image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400' },
+          { id: 'm_8', name: 'برجر لحم فاخر 8 قطع', price: 65, subCat: 'المجمدات', icon: '🥩', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
+          { id: 'm_9', name: 'بانيه دجاج مقرمش 400 جم', price: 75, subCat: 'المجمدات', icon: '🍗', image: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400' },
+          { id: 'm_10', name: 'سجق بلدي شرقي مجمد متبل', price: 70, subCat: 'المجمدات', icon: '🌭', image: 'https://images.unsplash.com/photo-1585325701165-351af916e581?w=400' },
+          { id: 'm_11', name: 'استربس دجاج مقرمش حار سبايسي', price: 80, subCat: 'المجمدات', icon: '🍗', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400' },
+          { id: 'm_12', name: 'بطاطس فارم فريتس مقلية 1 ك', price: 45, subCat: 'المجمدات', icon: '🍟', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400' },
+          { id: 'm_13', name: 'أرز مصري بلدي فاخر 1 ك', price: 32, subCat: 'البقوليات والعطاره', icon: '🌾', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+          { id: 'm_14', name: 'مكرونة الملكة 400 جم متنوعة', price: 15, subCat: 'البقوليات والعطاره', icon: '🍝', image: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=400' },
+          { id: 'm_15', name: 'فول تدميس بلدي مكمور 1 ك', price: 45, subCat: 'البقوليات والعطاره', icon: '🍲', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+          { id: 'm_16', name: 'عدس أصفر بلدي منقى نصف ك', price: 30, subCat: 'البقوليات والعطاره', icon: '🥣', image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=400' },
+          { id: 'm_17', name: 'فلفل أسود وكمون وبهارات طازجة', price: 25, subCat: 'البقوليات والعطاره', icon: '🌿', image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400' },
+          { id: 'm_18', name: 'شيبسي عائلي طعوم متنوعة', price: 15, subCat: 'التسالي', icon: '🥔', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400' },
+          { id: 'm_19', name: 'دوريتوس جبنة ناتشو مقرمش', price: 15, subCat: 'التسالي', icon: '🌽', image: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=400' },
+          { id: 'm_20', name: 'كانز كولا أو بيبسي 330 مل', price: 15, subCat: 'التسالي', icon: '🥤', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400' },
+          { id: 'm_21', name: 'كانز شويبس رمان أو خوخ', price: 15, subCat: 'التسالي', icon: '🍹', image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400' },
+          { id: 'm_22', name: 'لب سوبر ومكسرات مقلة ربع ك', price: 40, subCat: 'التسالي', icon: '🥜', image: 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?w=400' },
+          { id: 'm_23', name: 'شوكولاتة كادبوري أو جالاكسي', price: 25, subCat: 'التسالي', icon: '🍫', image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400' },
+          { id: 'm_24', name: 'مسحوق غسيل أوتوماتيك أريال 1 ك', price: 65, subCat: 'المنظفات', icon: '🧼', image: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400' },
+          { id: 'm_25', name: 'صابون مواعين سائل بريل وفيري', price: 32, subCat: 'المنظفات', icon: '🧴', image: 'https://images.unsplash.com/photo-1585832770485-e68a5dbfad52?w=400' },
+          { id: 'm_26', name: 'كلور أبيض معقم كلوركس 1 لتر', price: 18, subCat: 'المنظفات', icon: '🧽', image: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=400' },
+          { id: 'm_27', name: 'معطر ملابس داوني وفريدة 1 لتر', price: 45, subCat: 'المنظفات', icon: '🌸', image: 'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=400' },
+          { id: 'm_28', name: 'سكر أبيض نقي 1 ك', price: 35, subCat: 'بقالة وأساسيات أخرى', icon: '🍚', image: 'https://images.unsplash.com/photo-1581441363689-1f3c3c414635?w=400' },
+          { id: 'm_29', name: 'زيت قلية خليط 700 مل', price: 55, subCat: 'بقالة وأساسيات أخرى', icon: '🌻', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400' },
+          { id: 'm_30', name: 'زيت ذرة عافية كريستال 800 مل', price: 85, subCat: 'بقالة وأساسيات أخرى', icon: '🌽', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400' },
+          { id: 'm_31', name: 'شاي العروسة ناعم ربع ك', price: 45, subCat: 'بقالة وأساسيات أخرى', icon: '☕', image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400' },
+          { id: 'm_32', name: 'سمنة روابي أو كريستال 700 جم', price: 85, subCat: 'بقالة وأساسيات أخرى', icon: '🧈', image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400' },
+          { id: 'm_33', name: 'صلصة طماطم هاينز معجون مركز', price: 20, subCat: 'بقالة وأساسيات أخرى', icon: '🥫', image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?w=400' },
+          { id: 'm_34', name: 'علبة تونة صن شاين قطع 140 جم', price: 40, subCat: 'بقالة وأساسيات أخرى', icon: '🐟', image: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=400' }
+        ]
+      },
+      'المطاعم': {
+        name: 'المطاعم',
+        emoji: '🍔',
+        subCategories: ['الفيومي للفطائر والبيتزا', 'الكشري والطواجن', 'المشويات'],
+        items: [
+          { id: 'r_1', name: 'فطيرة مشلتت فلاحي سادة بالسمن', price: 80, subCat: 'الفيومي للفطائر والبيتزا', icon: '🥞', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', notes: 'طازجة وسخنة من الفرن' },
+          { id: 'r_2', name: 'فطيرة حادقة مكس جبن كيري ورومي', price: 100, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400' },
+          { id: 'r_3', name: 'فطيرة سجق إسكندراني كيرل', price: 120, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=400' },
+          { id: 'r_4', name: 'بيتزا مشكل جبن حجم وسط', price: 90, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400' },
+          { id: 'r_5', name: 'بيتزا لحمة وسجق حجم كبير', price: 130, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400' },
+          { id: 'r_6', name: 'كريب زنجر دجاج مقرمش حار', price: 65, subCat: 'الفيومي للفطائر والبيتزا', icon: '🌯', image: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=400' },
+          { id: 'r_7', name: 'حواوشي إسكندراني بالخلطة في العجين', price: 35, subCat: 'الفيومي للفطائر والبيتزا', icon: '🥩', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
+          { id: 'r_8', name: 'علبة كشري مخصوص بالدقة والصلصة', price: 30, subCat: 'الكشري والطواجن', icon: '🍲', image: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400' },
+          { id: 'r_9', name: 'علبة كشري سوبر عائلي', price: 45, subCat: 'الكشري والطواجن', icon: '🍲', image: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400' },
+          { id: 'r_10', name: 'طاجن مكرونة فرن باللحمة المفرومة', price: 50, subCat: 'الكشري والطواجن', icon: '🥘', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=400' },
+          { id: 'r_11', name: 'طاجن مكرونة بالفراخ والموتزاريلا', price: 60, subCat: 'الكشري والطواجن', icon: '🥘', image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400' },
+          { id: 'r_12', name: 'وجبة ربع فرخة مشوية على الفحم مع أرز', price: 75, subCat: 'المشويات', icon: '🍗', image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400' },
+          { id: 'r_13', name: 'وجبة نصف فرخة مشوية مع أرز وسلطات', price: 130, subCat: 'المشويات', icon: '🍗', image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400' },
+          { id: 'r_14', name: 'نصف كيلو كفتة حاتي مشوية بلدي', price: 160, subCat: 'المشويات', icon: '🥩', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
+          { id: 'r_15', name: 'وجبة ميكس جريل مشويات مشكلة', price: 150, subCat: 'المشويات', icon: '🥩', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' }
+        ]
+      },
+      'الخضار': {
+        name: 'الخضار',
+        emoji: '🥦',
+        subCategories: ['خضروات أساسية'],
+        items: [
+          { id: 'v_1', name: 'طماطم بلدي طازجة 1 ك', price: 20, subCat: 'خضروات أساسية', icon: '🍅', image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400' },
+          { id: 'v_2', name: 'بطاطس تحمير فاخرة رملية 1 ك', price: 25, subCat: 'خضروات أساسية', icon: '🥔', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400' },
+          { id: 'v_3', name: 'بصل أحمر بلدي ناشف 1 ك', price: 18, subCat: 'خضروات أساسية', icon: '🧅', image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400' },
+          { id: 'v_4', name: 'خيار بلدي طازج مقرمش 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🥒', image: 'https://images.unsplash.com/photo-1604977042946-1eecc30f269e?w=400' },
+          { id: 'v_5', name: 'فلفل رومي وحار 1 ك', price: 20, subCat: 'خضروات أساسية', icon: '🫑', image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400' },
+          { id: 'v_6', name: 'ليمون بلدي حامض ربع ك', price: 10, subCat: 'خضروات أساسية', icon: '🍋', image: 'https://images.unsplash.com/photo-1533082353171-85b0ce483543?w=400' },
+          { id: 'v_7', name: 'باذنجان رومي أسود للقلي 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🍆', image: 'https://images.unsplash.com/photo-1628773822503-930a84d9f67a?w=400' },
+          { id: 'v_8', name: 'كوسة بلدي طازجة للمحشي 1 ك', price: 20, subCat: 'خضروات أساسية', icon: '🥒', image: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?w=400' },
+          { id: 'v_9', name: 'جزر أصفر سكري بلدي 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🥕', image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400' },
+          { id: 'v_10', name: 'ملوخية خضراء فلاحي طازجة 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🥬', image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400' },
+          { id: 'v_11', name: 'كرنب بلدي صعيدي للمحشي', price: 25, subCat: 'خضروات أساسية', icon: '🥬', image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=400' }
+        ]
+      },
+      'الصيدلية': {
+        name: 'الصيدلية',
+        emoji: '💊',
+        subCategories: ['اطلب ما تحتاج'],
+        items: [
+          { id: 'p_1', name: 'صيدلية عبدالكريم بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_2', name: 'صيدلية أحمد عبدالعليم بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_3', name: 'صيدلية هبة بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_4', name: 'شريط بنادول أزرق مسكن', price: 25, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_5', name: 'شريط بروفين 400 مسكن ومضاد التهاب', price: 20, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_6', name: 'فوار فواكه أو راني للحموضة', price: 15, subCat: 'اطلب ما تحتاج', icon: '🧪', image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=400' },
+          { id: 'p_7', name: 'حقيبة إسعافات أولية وشاش وبلاستر', price: 35, subCat: 'اطلب ما تحتاج', icon: '🩹', image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=400' }
+        ]
+      },
+      'المكتبة': {
+        name: 'المكتبة',
+        emoji: '📚',
+        subCategories: ['طباعة وتصوير', 'منتجات مكتبية ومدرسية'],
+        items: [
+          { id: 'lib_1', name: 'تصوير مستندات وأوراق أبيض وأسود', price: 1, subCat: 'طباعة وتصوير', icon: '📄', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400' },
+          { id: 'lib_2', name: 'طباعة أوراق وملازم PDF من الهاتف', price: 1.5, subCat: 'طباعة وتصوير', icon: '🖨️', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400' },
+          { id: 'lib_3', name: 'طباعة مستندات ألوان ليزر فاخرة A4', price: 5, subCat: 'طباعة وتصوير', icon: '📑', image: 'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400' },
+          { id: 'lib_4', name: 'تجليد سلك بلاستيك للملازم', price: 15, subCat: 'طباعة وتصوير', icon: '📚', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400' },
+          { id: 'lib_5', name: 'كشكول سلك كبير 80 ورقة مقسم', price: 22, subCat: 'منتجات مكتبية ومدرسية', icon: '📓', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400' },
+          { id: 'lib_6', name: 'كشكول 60 ورقة مسطر عادي', price: 12, subCat: 'منتجات مكتبية ومدرسية', icon: '📝', image: 'https://images.unsplash.com/photo-1584697964190-705b893683f1?w=400' },
+          { id: 'lib_7', name: 'دستة أقلام جاف أزرق فرنساوي', price: 35, subCat: 'منتجات مكتبية ومدرسية', icon: '🖊️', image: 'https://images.unsplash.com/photo-1585336261026-4157690a1bad?w=400' },
+          { id: 'lib_8', name: 'علبة ألوان خشب 12 لون فاخرة', price: 30, subCat: 'منتجات مكتبية ومدرسية', icon: '🎨', image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400' },
+          { id: 'lib_9', name: 'طقم هندسة ومسطرة ومثلثات', price: 25, subCat: 'منتجات مكتبية ومدرسية', icon: '📐', image: 'https://images.unsplash.com/photo-1585336261026-4157690a1bad?w=400' }
+        ]
+      },
+      'فودافون كاش': {
+        name: 'فودافون كاش',
+        emoji: '💳',
+        subCategories: ['احتاج فلوس كاش', 'سداد فواتير وأقساط'],
+        items: [
+          { id: 'cash_1', name: 'طلب كاش دليفري 200 ج لحد البيت', price: 15, subCat: 'احتاج فلوس كاش', icon: '💵', image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400' },
+          { id: 'cash_2', name: 'طلب كاش دليفري 500 ج لحد البيت', price: 15, subCat: 'احتاج فلوس كاش', icon: '💵', image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400' },
+          { id: 'cash_3', name: 'طلب كاش دليفري 1000 ج لحد البيت', price: 20, subCat: 'احتاج فلوس كاش', icon: '💵', image: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=400' },
+          { id: 'cash_4', name: 'إيداع وتحويل فودافون كاش أو إنستاباي', price: 15, subCat: 'احتاج فلوس كاش', icon: '📲', image: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=400' },
+          { id: 'cash_5', name: 'سداد فاتورة الكهرباء وشحن الكروت', price: 15, subCat: 'سداد فواتير وأقساط', icon: '⚡', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400' },
+          { id: 'cash_6', name: 'سداد فاتورة المياه أو الغاز', price: 15, subCat: 'سداد فواتير وأقساط', icon: '💧', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400' },
+          { id: 'cash_7', name: 'شحن وتجديد باقة الإنترنت المنزلي WE', price: 10, subCat: 'سداد فواتير وأقساط', icon: '🌐', image: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=400' },
+          { id: 'cash_8', name: 'سداد أقساط شركات التمويل (فاليو - أمان - سهولة)', price: 20, subCat: 'سداد فواتير وأقساط', icon: '🧾', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400' }
+        ]
+      },
+      'الهدايا': {
+        name: 'الهدايا',
+        emoji: '🎁',
+        subCategories: ['هدايا للبنات', 'هدايا للأولاد', 'هدايا للأطفال'],
+        items: [
+          { id: 'g_1', name: 'بوكس هدايا شياكة مشكل فاخر', price: 150, subCat: 'هدايا للبنات', icon: '🎁', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400' },
+          { id: 'g_2', name: 'دبدوب أحمر لطيف حجم وسط ناعم', price: 120, subCat: 'هدايا للبنات', icon: '🧸', image: 'https://images.unsplash.com/photo-1559454403-b8fb88521f11?w=400' },
+          { id: 'g_3', name: 'برفان حريمي فاخر هادئ وجذاب', price: 180, subCat: 'هدايا للبنات', icon: '🌸', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400' },
+          { id: 'g_4', name: 'ساعة يد حريمي كلاسيك معدن', price: 160, subCat: 'هدايا للبنات', icon: '⌚', image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400' },
+          { id: 'g_5', name: 'محفظة جلد طبيعي رجالي شياكة', price: 95, subCat: 'هدايا للأولاد', icon: '👛', image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400' },
+          { id: 'g_6', name: 'ساعة يد شبابي كاجوال ضد الماء', price: 140, subCat: 'هدايا للأولاد', icon: '⌚', image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400' },
+          { id: 'g_7', name: 'برفان رجالي سوفاج أو ون مليون', price: 180, subCat: 'هدايا للأولاد', icon: '✨', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400' },
+          { id: 'g_8', name: 'عروسة أطفال بناتي تغني وتتكلم', price: 85, subCat: 'هدايا للأطفال', icon: '🪆', image: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400' },
+          { id: 'g_9', name: 'سيارة أطفال تحكم عن بعد بالريموت', price: 95, subCat: 'هدايا للأطفال', icon: '🏎️', image: 'https://images.unsplash.com/photo-1594787318286-3d835c1d207f?w=400' },
+          { id: 'g_10', name: 'علبة مكعبات وتركيبات 100 قطعة', price: 75, subCat: 'هدايا للأطفال', icon: '🧩', image: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=400' }
+        ]
+      },
+      'الخردوات': {
+        name: 'الخردوات',
+        emoji: '🧸',
+        subCategories: ['أدوات منزلية'],
+        items: [
+          { id: 'hw_1', name: 'لمبة ليد موفرة 9 وات بيضاء', price: 35, subCat: 'أدوات منزلية', icon: '💡', image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=400' },
+          { id: 'hw_2', name: 'مشترك كهرباء 3 عيون 2 متر مع زر أمان', price: 55, subCat: 'أدوات منزلية', icon: '🔌', image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400' },
+          { id: 'hw_3', name: 'طقم حجر بطارية ريموت 4 قطع', price: 25, subCat: 'أدوات منزلية', icon: '🔋', image: 'https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=400' },
+          { id: 'hw_4', name: 'حجر بطارية سخان غاز دبة أصلية', price: 45, subCat: 'أدوات منزلية', icon: '🔋', image: 'https://images.unsplash.com/photo-1619725002198-6a689b72f41d?w=400' },
+          { id: 'hw_5', name: 'وصلة شاحن سريع Type-C قماش متينة', price: 45, subCat: 'أدوات منزلية', icon: '📱', image: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400' },
+          { id: 'hw_6', name: 'طقم إبر وبكر خيط ومستلزمات خياطة', price: 20, subCat: 'أدوات منزلية', icon: '🪡', image: 'https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=400' },
+          { id: 'hw_7', name: 'ولاعة غاز للمطبخ طويلة أمان', price: 25, subCat: 'أدوات منزلية', icon: '🔥', image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=400' },
+          { id: 'hw_8', name: 'مسدس شمع سيليكون مع أصابع شمع', price: 65, subCat: 'أدوات منزلية', icon: '🔧', image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=400' }
+        ]
+      },
+      'التوصيل': {
+        name: 'التوصيل',
+        emoji: '🛵',
+        subCategories: ['مشاوير خاصة', 'مشاوير دائمة أو مدرسية'],
+        items: [
+          { id: 'del_1', name: 'توك توك مشاوير داخل الغريزات والعزب', price: 15, subCat: 'مشاوير خاصة', icon: '🛺', image: 'https://images.unsplash.com/photo-1566232392379-afd9298e6a46?w=400' },
+          { id: 'del_2', name: 'موتوسيكل دليفري وتوصيل فوري', price: 15, subCat: 'مشاوير خاصة', icon: '🛵', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400' },
+          { id: 'del_3', name: 'سيارة خاصة ملاكي (مشاوير عائلية ومطار)', price: 0, subCat: 'مشاوير خاصة', icon: '🚗', image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400' },
+          { id: 'del_4', name: 'سيارة ميكروباص للمجموعات والرحلات', price: 0, subCat: 'مشاوير خاصة', icon: '🚐', image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400' },
+          { id: 'del_5', name: 'سيارة ربع نقل دبابة لنقل البضائع', price: 0, subCat: 'مشاوير خاصة', icon: '🛻', image: 'https://images.unsplash.com/photo-1559297434-fae8a1916a79?w=400' },
+          { id: 'del_6', name: 'سيارة نص نقل جامبو للأحمال الثقيلة', price: 0, subCat: 'مشاوير خاصة', icon: '🚚', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400' },
+          { id: 'del_7', name: 'اشتراك شهري لتوصيل الطلاب للمدارس', price: 0, subCat: 'مشاوير دائمة أو مدرسية', icon: '🚌', image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400' },
+          { id: 'del_8', name: 'توصيل حصص ودروس خصوصية منتظمة', price: 0, subCat: 'مشاوير دائمة أو مدرسية', icon: '🎒', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=400' }
+        ]
+      },
+      'طلب منتج أو خدمة غير متوفرة': {
+        name: 'طلب منتج أو خدمة غير متوفرة',
+        emoji: '⚡',
+        subCategories: ['طلبات خاصة'],
+        items: [
+          { id: 'cust_1', name: 'شراء غرض أو طلب من المركز أو طهطا', price: 0, subCat: 'طلبات خاصة', icon: '🛍️', image: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=400' },
+          { id: 'cust_2', name: 'استلام شحنة أو طرد من مكاتب الشحن', price: 0, subCat: 'طلبات خاصة', icon: '📦', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400' },
+          { id: 'cust_3', name: 'شراء قطع غيار أو أدوات مهنية متخصصة', price: 0, subCat: 'طلبات خاصة', icon: '🔧', image: 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?w=400' }
+        ]
+      }
+    };
 
     let catalogDepartments = DEFAULT_DEPARTMENTS;
     let activeMainTab = 'الماركت';
@@ -341,20 +500,19 @@
     let cart = [];
     let userGPSLocationUrl = null;
 
-    // Prescription Upload State
+    // Prescription & Custom Image State
     let pharmacyUploadState = {
       file: null,
-      previewUrl: '',
       remoteUrl: '',
       isUploading: false
     };
 
     // ==========================================
-    // INITIALIZATION (IMMEDIATE RENDERING)
+    // 3. INITIALIZATION & LIVE CSV SYNC
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
       // 1. Load cached departments if available
-      const cached = localStorage.getItem('wasaly_dynamic_departments_v3');
+      const cached = localStorage.getItem('wasaly_dynamic_departments_v5');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
@@ -372,31 +530,21 @@
       syncWithGoogleSheets(false);
     });
 
-    // ==========================================
-    // EMOJI ASSIGNER
-    // ==========================================
-    function getEmoji(name) {
+    function getDepartmentEmoji(name) {
+      if (MAIN_TABS_METADATA[name]) return MAIN_TABS_METADATA[name].emoji;
       const text = name.toLowerCase();
       if (text.includes('ماركت') || text.includes('بقال') || text.includes('سوبر')) return '🛒';
-      if (text.includes('هد') || text.includes('عروس') || text.includes('مناسب')) return '🎁';
-      if (text.includes('مطعم') || text.includes('مطاعم') || text.includes('كشري') || text.includes('فطاير') || text.includes('أكل')) return '🍔';
-      if (text.includes('صيدل') || text.includes('دواء') || text.includes('علاج')) return '💊';
-      if (text.includes('مكتب') || text.includes('ورق') || text.includes('كشكول')) return '📚';
-      if (text.includes('لبس') || text.includes('ملابس') || text.includes('أطفال')) return '👕';
-      if (text.includes('خردوات') || text.includes('أدوات منزل')) return '🧸';
-      if (text.includes('عطار') || text.includes('بهار')) return '🌿';
-      if (text.includes('لعب') || text.includes('العاب')) return '🎮';
-      if (text.includes('خضار') || text.includes('فاكه')) return '🥔';
-      if (text.includes('جبن') || text.includes('لبن') || text.includes('ألبان')) return '🧀';
-      if (text.includes('منظف') || text.includes('صابون')) return '🧼';
-      if (text.includes('سكر') || text.includes('زيت')) return '🍚';
-      if (text.includes('شيبس') || text.includes('كانز')) return '🍫';
+      if (text.includes('مطعم') || text.includes('أكل') || text.includes('كشري')) return '🍔';
+      if (text.includes('خضار') || text.includes('فاكه')) return '🥦';
+      if (text.includes('صيدل') || text.includes('دواء')) return '💊';
+      if (text.includes('مكتب') || text.includes('ورق')) return '📚';
+      if (text.includes('كاش') || text.includes('فودافون')) return '💳';
+      if (text.includes('هد')) return '🎁';
+      if (text.includes('خردوات')) return '🧸';
+      if (text.includes('توصيل') || text.includes('مشوار')) return '🛵';
       return '🛍️';
     }
 
-    // ==========================================
-    // 100% DYNAMIC SHEET SYNC ENGINE
-    // ==========================================
     async function syncWithGoogleSheets(isManual = false) {
       const syncIcon = document.getElementById('syncIcon');
       const syncDot = document.getElementById('headerSyncDot');
@@ -418,7 +566,7 @@
       } catch (err) {
         console.warn('Sync issue, using local cache:', err);
         if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        if (isManual) alert('تعذر الاتصال بـ Google Sheets، تأكد من اتصال الإنترنت.');
+        if (isManual) alert('تعذر الاتصال بـ Google Sheets، تم الاعتماد على البيانات المحفوظة.');
       } finally {
         if (syncIcon) syncIcon.classList.remove('animate-spin-slow');
       }
@@ -454,8 +602,34 @@
       return rows;
     }
 
+    function normalizeMainCategoryName(raw) {
+      const trimmed = raw.trim();
+      for (const canonical of MAIN_TABS_ORDER) {
+        if (trimmed === canonical || trimmed.includes(canonical)) {
+          return canonical;
+        }
+      }
+      if (trimmed.includes('ماركت')) return 'الماركت';
+      if (trimmed.includes('مطعم') || trimmed.includes('مطاعم')) return 'المطاعم';
+      if (trimmed.includes('خضار')) return 'الخضار';
+      if (trimmed.includes('صيدل')) return 'الصيدلية';
+      if (trimmed.includes('مكتب')) return 'المكتبة';
+      if (trimmed.includes('كاش') || trimmed.includes('فودافون')) return 'فودافون كاش';
+      if (trimmed.includes('هد')) return 'الهدايا';
+      if (trimmed.includes('خردوات')) return 'الخردوات';
+      if (trimmed.includes('توصيل') || trimmed.includes('مشوار')) return 'التوصيل';
+      if (trimmed.includes('غير متوفر') || trimmed.includes('خاص')) return 'طلب منتج أو خدمة غير متوفرة';
+      return trimmed;
+    }
+
     function processAllSheetRowsDynamically(rows) {
-      const newDepartments = {};
+      // Clone base departments so structure is guaranteed
+      const newDepartments = JSON.parse(JSON.stringify(DEFAULT_DEPARTMENTS));
+      // Reset items in order to take live rows from sheet
+      for (const k in newDepartments) {
+        newDepartments[k].subCategories = new Set(newDepartments[k].subCategories || []);
+        newDepartments[k].items = [];
+      }
 
       rows.forEach((row, idx) => {
         const rawCategory = (row[0] || '').trim();
@@ -479,44 +653,34 @@
 
         if (rawCategory.includes('-') || rawCategory.includes('–') || rawCategory.includes(':')) {
           const parts = rawCategory.split(/[-–:]/);
-          mainCat = parts[0].trim();
+          mainCat = normalizeMainCategoryName(parts[0].trim());
           subCat = parts.slice(1).join('-').trim();
         } else {
-          mainCat = rawCategory;
+          mainCat = normalizeMainCategoryName(rawCategory);
           subCat = 'عام';
         }
 
-        if (mainCat.includes('مطعم') || mainCat.includes('مطاعم')) mainCat = 'المطاعم';
-        else if (mainCat.includes('صيدل')) mainCat = 'الصيدليات';
-        else if (mainCat.includes('ماركت') || mainCat.includes('بقال')) mainCat = 'الماركت';
-        else if (mainCat.includes('هد')) mainCat = 'الهدايا';
-
         if (!newDepartments[mainCat]) {
-          let deptType = 'catalog';
-          if (mainCat === 'المطاعم') deptType = 'restaurants';
-          else if (mainCat === 'الصيدليات') deptType = 'pharmacies';
-
           newDepartments[mainCat] = {
             name: mainCat,
-            type: deptType,
-            emoji: getEmoji(mainCat),
+            emoji: getDepartmentEmoji(mainCat),
             subCategories: new Set(),
             items: []
           };
         }
 
-        if (subCat) {
+        if (subCat && subCat !== 'عام') {
           newDepartments[mainCat].subCategories.add(subCat);
         }
 
         newDepartments[mainCat].items.push({
-          id: 'item_' + idx,
+          id: 'sheet_' + idx,
           name: nameCol + (unitCol && unitCol !== 'سعر استرشادي' && unitCol !== 'فاتوره' && unitCol !== 'كيلو' && !nameCol.includes(unitCol) ? ` (${unitCol})` : ''),
           price: priceCol,
           subCat: subCat || 'عام',
           notes: notesCol.startsWith('http') ? '' : notesCol,
           image: imgUrl,
-          icon: getEmoji(subCat + ' ' + nameCol)
+          icon: getDepartmentEmoji(subCat + ' ' + nameCol)
         });
       });
 
@@ -524,51 +688,43 @@
         newDepartments[k].subCategories = Array.from(newDepartments[k].subCategories);
       }
 
-      if (Object.keys(newDepartments).length > 0) {
-        catalogDepartments = newDepartments;
-        localStorage.setItem('wasaly_dynamic_departments_v3', JSON.stringify(catalogDepartments));
-        renderDynamicMainTabs();
-      }
+      catalogDepartments = newDepartments;
+      localStorage.setItem('wasaly_dynamic_departments_v5', JSON.stringify(catalogDepartments));
+      renderDynamicMainTabs();
     }
 
     // ==========================================
-    // RENDER MAIN TABS
+    // 4. RENDER MAIN NAVIGATION TABS (EXACT 1-10 SEQUENCE)
     // ==========================================
     function renderDynamicMainTabs() {
       const container = document.getElementById('dynamicMainTabsContainer');
       container.innerHTML = '';
 
-      const deptKeys = Object.keys(catalogDepartments);
-      if (deptKeys.length === 0) return;
+      // Merge predefined order with any new extra custom categories added in Sheet
+      const existingKeys = Object.keys(catalogDepartments);
+      const allTabs = [...MAIN_TABS_ORDER];
+      existingKeys.forEach(k => {
+        if (!allTabs.includes(k)) allTabs.push(k);
+      });
 
-      if (!activeMainTab || (!catalogDepartments[activeMainTab] && activeMainTab !== 'errand')) {
-        activeMainTab = deptKeys[0];
+      if (!activeMainTab || !catalogDepartments[activeMainTab]) {
+        activeMainTab = allTabs[0];
       }
 
-      deptKeys.forEach(deptName => {
-        const dept = catalogDepartments[deptName];
+      allTabs.forEach(deptName => {
+        const dept = catalogDepartments[deptName] || { name: deptName, emoji: getDepartmentEmoji(deptName) };
         const isActive = activeMainTab === deptName;
+        const meta = MAIN_TABS_METADATA[deptName] || { emoji: dept.emoji, shortName: dept.name };
 
         const btn = document.createElement('button');
-        btn.className = `tab-btn flex-1 min-w-[70px] py-2 px-1.5 rounded-xl font-bold transition shrink-0 ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
+        btn.className = `tab-btn py-2 px-2.5 rounded-xl font-bold transition shrink-0 flex items-center gap-1.5 ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
         btn.innerHTML = `
-          <span class="block text-sm leading-none mb-0.5">${dept.emoji}</span>
-          <span class="text-[11px] whitespace-nowrap">${dept.name}</span>
+          <span class="text-sm leading-none">${meta.emoji}</span>
+          <span class="text-xs whitespace-nowrap">${meta.shortName}</span>
         `;
         btn.onclick = () => selectMainTab(deptName);
         container.appendChild(btn);
       });
-
-      // Permanent Errand / Vehicle Fleet Tab
-      const isErrandActive = activeMainTab === 'errand';
-      const errandBtn = document.createElement('button');
-      errandBtn.className = `tab-btn flex-1 min-w-[75px] py-2 px-1.5 rounded-xl font-bold transition shrink-0 ${isErrandActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`;
-      errandBtn.innerHTML = `
-        <span class="block text-sm leading-none mb-0.5">🚖</span>
-        <span class="text-[11px] whitespace-nowrap">مشوار ومواصلات</span>
-      `;
-      errandBtn.onclick = () => selectMainTab('errand');
-      container.appendChild(errandBtn);
 
       renderActiveTabContent();
     }
@@ -580,152 +736,181 @@
     }
 
     // ==========================================
-    // RENDER ACTIVE TAB CONTENT
+    // 5. RENDER ACTIVE TAB CONTENT
     // ==========================================
     function renderActiveTabContent() {
       const container = document.getElementById('dynamicContentContainer');
       container.innerHTML = '';
 
-      // 1. VEHICLE FLEET & ERRAND DISPATCH
-      if (activeMainTab === 'errand') {
-        renderErrandAndVehiclesSection(container);
-        return;
+      const currentDept = catalogDepartments[activeMainTab] || { name: activeMainTab, items: [], subCategories: [] };
+
+      // Switch according to department type/name
+      if (activeMainTab === 'التوصيل') {
+        renderDeliveryAndVehiclesSection(container, currentDept);
+      } else if (activeMainTab === 'فودافون كاش') {
+        renderVodafoneCashSection(container, currentDept);
+      } else if (activeMainTab === 'الصيدلية') {
+        renderPharmacySection(container, currentDept);
+      } else if (activeMainTab === 'المكتبة') {
+        renderLibrarySection(container, currentDept);
+      } else if (activeMainTab === 'طلب منتج أو خدمة غير متوفرة') {
+        renderCustomOrderServiceSection(container, currentDept);
+      } else {
+        renderStandardCatalogSection(container, currentDept);
       }
-
-      const currentDept = catalogDepartments[activeMainTab];
-      if (!currentDept) return;
-
-      // 2. RESTAURANTS
-      if (currentDept.type === 'restaurants') {
-        renderRestaurantsSection(container, currentDept);
-        return;
-      }
-
-      // 3. PHARMACIES & PRESCRIPTION UPLOAD
-      if (currentDept.type === 'pharmacies') {
-        renderPharmaciesSection(container, currentDept);
-        return;
-      }
-
-      // 4. CATALOG DEPARTMENTS (Market, Gifts, etc.)
-      renderCatalogSection(container, currentDept);
     }
 
     // ========================================================
-    // SECTION 1: VEHICLE FLEET & ERRAND DISPATCH (مشوار خاص)
+    // A. SECTION: DELIVERY & VEHICLES (التوصيل)
     // ========================================================
-    function renderErrandAndVehiclesSection(container) {
+    function renderDeliveryAndVehiclesSection(container, currentDept) {
       const wrapper = document.createElement('div');
-      wrapper.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4';
+      wrapper.className = 'space-y-3';
 
-      let vehicleCardsHTML = '';
-      VEHICLE_OPTIONS.forEach(v => {
-        const isSelected = selectedVehicleId === v.id;
-        vehicleCardsHTML += `
-          <div onclick="selectVehicle('${v.id}')" data-vehicle-id="${v.id}" class="vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${isSelected ? 'border-brand-600 bg-brand-50/50 shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-white'}">
-            <div class="flex items-start justify-between">
-              <span class="text-2xl">${v.icon}</span>
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}">${v.badge}</span>
+      // Sub-tabs: مشاوير خاصة vs مشاوير دائمة أو مدرسية
+      const subBar = document.createElement('div');
+      subBar.className = 'flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold';
+
+      const isSpecial = activeSubFilter !== 'school';
+      subBar.innerHTML = `
+        <button onclick="activeSubFilter='all'; renderActiveTabContent();" class="flex-1 py-2 rounded-xl transition ${isSpecial ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+          🛵 مشاوير خاصة ونقل
+        </button>
+        <button onclick="activeSubFilter='school'; renderActiveTabContent();" class="flex-1 py-2 rounded-xl transition ${!isSpecial ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+          🚌 مشاوير دائمة ومدرسية
+        </button>
+      `;
+      wrapper.appendChild(subBar);
+
+      if (isSpecial) {
+        // SPECIAL RIDES & VEHICLE FLEET
+        const fleetBox = document.createElement('div');
+        fleetBox.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4';
+
+        let vehicleCardsHTML = '';
+        VEHICLE_OPTIONS.forEach(v => {
+          const isSelected = selectedVehicleId === v.id;
+          vehicleCardsHTML += `
+            <div onclick="selectVehicle('${v.id}')" data-vehicle-id="${v.id}" class="vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between ${isSelected ? 'border-brand-600 bg-brand-50/50 shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-white'}">
+              <div class="flex items-start justify-between">
+                <span class="text-2xl">${v.icon}</span>
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-600'}">${v.badge}</span>
+              </div>
+              <div class="mt-2">
+                <h4 class="font-black text-xs text-slate-900 flex items-center justify-between">
+                  <span>${v.name}</span>
+                  <span class="check-mark text-brand-600 text-xs ${isSelected ? '' : 'hidden'}">✓</span>
+                </h4>
+                <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${v.desc}</p>
+              </div>
             </div>
-            <div class="mt-2">
-              <h4 class="font-black text-xs text-slate-900 flex items-center justify-between">
-                <span>${v.name}</span>
-                <span class="check-mark text-brand-600 text-xs ${isSelected ? '' : 'hidden'}">✓</span>
-              </h4>
-              <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">${v.desc}</p>
+          `;
+        });
+
+        const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
+
+        fleetBox.innerHTML = `
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-2">اختر وسيلة المواصلات المطلوبة:</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${vehicleCardsHTML}</div>
+          </div>
+
+          <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900 font-bold">
+            <span id="selectedVehicleSummary">الوسيلة المختارة: <strong>${activeVehObj.icon} ${activeVehObj.name}</strong></span>
+            <span class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">الأجرة بالاتفاق</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="text" id="errandFromInput" placeholder="مكان الركوب أو الشراء (منين؟) *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+              <input type="text" id="errandToInput" placeholder="مكان الوصول أو الوجهة (على فين؟) *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
             </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">موعد المشوار:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-1.5 p-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 font-bold cursor-pointer">
+                  <input type="radio" name="vehicleTime" value="now" checked class="text-brand-600">
+                  <span>فوري الآن ⚡</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer">
+                  <input type="radio" name="vehicleTime" value="later" class="text-brand-600">
+                  <span>موعد محدد لاحقاً 🕒</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="text" id="errandCustName" placeholder="الاسم بالكامل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+              <input type="tel" id="errandCustPhone" placeholder="رقم الهاتف للتواصل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold" dir="ltr">
+            </div>
+
+            <textarea id="errandDetailsInput" rows="2" placeholder="تفاصيل الحمولة، عدد الأفراد، أو أي ملاحظة للمندوب..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
+
+            <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition">
+              <span>📍</span>
+              <span id="errandGpsText">تحديد موقعي الحالي على الخريطة (GPS)</span>
+            </button>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <button onclick="dispatchVehicleOrderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md flex items-center justify-center gap-2 transition">
+              <span>طلب وسيلة المواصلات عبر واتساب فوراً 💬</span>
+            </button>
+            <button onclick="addVehicleOrderToCart()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-300 flex items-center justify-center gap-1.5 transition">
+              <span>🛒 إضافة المشوار لسلة الطلبات</span>
+            </button>
           </div>
         `;
-      });
-
-      const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
-
-      wrapper.innerHTML = `
-        <!-- Section Header -->
-        <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-          <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center text-xl">🚖</div>
-          <div>
-            <h3 class="font-black text-sm text-slate-900">خدمة المشاوير وحجز المواصلات</h3>
-            <p class="text-[11px] text-slate-400">اختر وسيلة المواصلات المناسبة وسيصلك المندوب أو السائق فوراً</p>
-          </div>
-        </div>
-
-        <!-- Vehicle Fleet Grid -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-2">اختر وسيلة المواصلات المطلوبة:</label>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            ${vehicleCardsHTML}
-          </div>
-        </div>
-
-        <!-- Selected Vehicle Confirmation -->
-        <div class="p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900 font-bold">
-          <span id="selectedVehicleSummary">الوسيلة المختارة: <strong>${activeVehObj.icon} ${activeVehObj.name}</strong></span>
-          <span class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">سعر المشوار بالاتفاق</span>
-        </div>
-
-        <!-- Ride Details Form -->
-        <div class="space-y-2.5 pt-1">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        wrapper.appendChild(fleetBox);
+      } else {
+        // PERMANENT / SCHOOL COMMUTE
+        const schoolBox = document.createElement('div');
+        schoolBox.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+        schoolBox.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-2xl">🚌</span>
             <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">مكان الركوب أو الشراء (منين؟) *</label>
-              <input type="text" id="errandFromInput" placeholder="مثلاً: الغريزات - الشارع القبلي أو بجوار المسجد..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+              <h3 class="font-extrabold text-sm text-slate-800">مشاوير واشتراكات المدارس والعمل</h3>
+              <p class="text-[10px] text-slate-400">توصيل دوري آمن للطلاب، الدروس، والموظفين يومياً أو شهرياً</p>
             </div>
+          </div>
+
+          <div class="space-y-2 text-xs">
             <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">مكان الوصول أو الوجهة (على فين؟) *</label>
-              <input type="text" id="errandToInput" placeholder="مثلاً: محطة طهطا، المركز، المستشفى، قرية أخرى..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+              <label class="block font-bold text-slate-700 mb-1">نوع الاشتراك المطلوب:</label>
+              <select id="schoolTypeSelect" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+                <option value="اشتراك مدرسة">اشتراك مدرسة (ذهاب وعودة يومي)</option>
+                <option value="اشتراك دروس خصوصية">اشتراك حصص ودروس خصوصية</option>
+                <option value="اشتراك موظفين">توصيل موظفين يومي للعمل / المركز</option>
+                <option value="مشوار أسبوعي">مشوار دوري محدد أسبوعياً</option>
+              </select>
             </div>
-          </div>
 
-          <!-- Ride Timing Choice -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">موعد المشوار:</label>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 font-bold cursor-pointer">
-                <input type="radio" name="vehicleTime" value="now" ${vehicleTimeChoice === 'now' ? 'checked' : ''} onchange="vehicleTimeChoice='now'" class="text-brand-600">
-                <span>فوري الآن ⚡</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer">
-                <input type="radio" name="vehicleTime" value="later" ${vehicleTimeChoice === 'later' ? 'checked' : ''} onchange="vehicleTimeChoice='later'" class="text-brand-600">
-                <span>موعد محدد لاحقاً 🕒</span>
-              </label>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="schoolFrom" placeholder="مكان الانطلاق (المنزل/الشارع) *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="text" id="schoolTo" placeholder="اسم المدرسة / الوجهة *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
             </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="schoolTimes" placeholder="مواعيد الذهاب والعودة *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="number" id="schoolCount" placeholder="عدد الطلاب أو الأفراد" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="schoolParentName" placeholder="اسم ولي الأمر / العميل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="tel" id="schoolPhone" placeholder="رقم الهاتف للتواصل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
+            </div>
+
+            <textarea id="schoolNotes" rows="2" placeholder="ملاحظات إضافية، أيام الإجازات، أو وسيلة التوصيل المفضلة..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
           </div>
 
-          <!-- Customer Name & Phone -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <input type="text" id="errandCustName" placeholder="الاسم بالكامل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
-            <input type="tel" id="errandCustPhone" placeholder="رقم الهاتف للتواصل *" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold" dir="ltr">
-          </div>
-
-          <!-- Ride Notes -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">تفاصيل إضافية أو حمولة (اختياري):</label>
-            <textarea id="errandDetailsInput" rows="2" placeholder="عدد الركاب، نوع البضاعة المراد نقلها، أو أي طلب خاص..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
-          </div>
-
-          <!-- GPS Location -->
-          <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition active:scale-95">
-            <span>📍</span>
-            <span id="errandGpsText">تحديد موقعي الحالي بدقة على الخريطة (GPS)</span>
+          <button onclick="dispatchSchoolRideViaWhatsApp()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
+            تنسيق وحجز الاشتراك عبر واتساب 💬
           </button>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="space-y-2 pt-2 border-t border-slate-100">
-          <!-- Direct WhatsApp Dispatch -->
-          <button onclick="dispatchVehicleOrderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-            <span>طلب وسيلة المواصلات عبر واتساب فوراً 💬</span>
-          </button>
-
-          <!-- Add to Cart Alternative -->
-          <button onclick="addVehicleOrderToCart()" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-300 flex items-center justify-center gap-1.5 transition">
-            <span>🛒</span>
-            <span>أو إضافة المشوار لسلة الطلبات</span>
-          </button>
-        </div>
-      `;
+        `;
+        wrapper.appendChild(schoolBox);
+      }
 
       container.appendChild(wrapper);
     }
@@ -740,15 +925,11 @@
         if (vId === id) {
           card.className = 'vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between border-brand-600 bg-brand-50/50 shadow-sm';
           if (check) check.classList.remove('hidden');
-          if (badge) {
-            badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-brand-600 text-white';
-          }
+          if (badge) badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-brand-600 text-white';
         } else {
           card.className = 'vehicle-card p-2.5 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between border-slate-200 bg-slate-50 hover:bg-white';
           if (check) check.classList.add('hidden');
-          if (badge) {
-            badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600';
-          }
+          if (badge) badge.className = 'text-[9px] font-black px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600';
         }
       });
       const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
@@ -758,7 +939,6 @@
       }
     }
 
-    // Direct WhatsApp Dispatch for Ride Request
     function dispatchVehicleOrderViaWhatsApp() {
       const fromLoc = document.getElementById('errandFromInput')?.value.trim() || '';
       const toLoc = document.getElementById('errandToInput')?.value.trim() || '';
@@ -776,21 +956,22 @@
       }
 
       const activeVehObj = VEHICLE_OPTIONS.find(v => v.id === selectedVehicleId) || VEHICLE_OPTIONS[0];
-      const timeText = vehicleTimeChoice === 'now' ? 'فوري (الآن ⚡)' : 'حجز موعد لاحق 🕒';
+      const isNow = document.querySelector('input[name="vehicleTime"]:checked')?.value === 'now';
+      const timeText = isNow ? 'فوري (الآن ⚡)' : 'حجز موعد لاحق 🕒';
 
       let msg = `🚖 *طلب مشوار / وسيلة مواصلات - تسوق الغريزات*\n`;
       msg += `📍 *القرية:* الغريزات وما حولها\n`;
       msg += `---------------------------------\n`;
       msg += `🛺 *وسيلة المواصلات المطلوبة:* ${activeVehObj.icon} ${activeVehObj.name}\n`;
       msg += `👤 *العميل:* ${name}\n`;
-      msg += `📞 *الهاتف للتواصل:* ${phone}\n`;
-      msg += `📍 *مكان الركوب / الشراء (من):* ${fromLoc}\n`;
-      msg += `🏁 *مكان الوصول / الوجهة (إلى):* ${toLoc}\n`;
+      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `📍 *مكان الركوب (من):* ${fromLoc}\n`;
+      msg += `🏁 *مكان الوصول (إلى):* ${toLoc}\n`;
       msg += `⏱️ *الموعد:* ${timeText}\n`;
       if (details) msg += `📝 *تفاصيل وحمولة:* ${details}\n`;
       if (userGPSLocationUrl) msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
       msg += `---------------------------------\n`;
-      msg += `⚠️ _الاتفاق على الأجرة والميعاد يتم عبر الواتساب فور استلام الطلب._`;
+      msg += `⚠️ _الأجرة بالاتفاق الودي عبر الواتساب فور استلام الطلب._`;
 
       const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
       const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
@@ -802,8 +983,8 @@
       const toLoc = document.getElementById('errandToInput')?.value.trim() || '';
       const details = document.getElementById('errandDetailsInput')?.value.trim() || '';
 
-      if (!fromLoc && !toLoc && !details) {
-        alert('اكتب تفاصيل المشوار أو المكان المطلوب أولاً.');
+      if (!fromLoc && !toLoc) {
+        alert('اكتب مكان الركوب والوصول أولاً.');
         return;
       }
 
@@ -821,74 +1002,290 @@
       openCartModal();
     }
 
+    function dispatchSchoolRideViaWhatsApp() {
+      const type = document.getElementById('schoolTypeSelect')?.value || 'اشتراك دوري';
+      const fromLoc = document.getElementById('schoolFrom')?.value.trim() || '';
+      const toLoc = document.getElementById('schoolTo')?.value.trim() || '';
+      const times = document.getElementById('schoolTimes')?.value.trim() || '';
+      const count = document.getElementById('schoolCount')?.value.trim() || '';
+      const name = document.getElementById('schoolParentName')?.value.trim() || '';
+      const phone = document.getElementById('schoolPhone')?.value.trim() || '';
+      const notes = document.getElementById('schoolNotes')?.value.trim() || '';
+
+      if (!fromLoc || !toLoc || !name || !phone) {
+        alert('من فضلك أكمل البيانات الأساسية: مكان الانطلاق، الوجهة، الاسم، ورقم الهاتف.');
+        return;
+      }
+
+      let msg = `🚌 *طلب اشتراك مشاوير مدرسية / موظفين - الغريزات*\n`;
+      msg += `---------------------------------\n`;
+      msg += `📋 *نوع الاشتراك:* ${type}\n`;
+      msg += `👤 *العميل / ولي الأمر:* ${name}\n`;
+      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `📍 *الانطلاق من:* ${fromLoc}\n`;
+      msg += `🏁 *الوجهة إلى:* ${toLoc}\n`;
+      if (times) msg += `⏱️ *المواعيد:* ${times}\n`;
+      if (count) msg += `👥 *عدد الأفراد:* ${count}\n`;
+      if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
+      msg += `---------------------------------\n`;
+      msg += `🤝 _يرجى التواصل للاتفاق على السائق والمواعيد والاشتراك الشهري._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
     // ========================================================
-    // SECTION 2: PHARMACIES & IMAGE UPLOAD HANDLING
+    // B. SECTION: VODAFONE CASH & BILL PAYMENTS (فودافون كاش)
     // ========================================================
-    function renderPharmaciesSection(container, currentDept) {
-      const pharmDiv = document.createElement('div');
-      pharmDiv.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
-      
-      let radiosHTML = '';
-      currentDept.items.forEach((p, idx) => {
-        radiosHTML += `
-          <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer text-xs">
-            <input type="radio" name="pharmacyChoice" value="${p.name}" ${idx === 0 ? 'checked' : ''} onchange="toggleOtherPharmacy(false)" class="text-blue-600">
-            <span>${p.name}</span>
-          </label>
-        `;
-      });
-      radiosHTML += `
-        <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 cursor-pointer text-xs">
-          <input type="radio" name="pharmacyChoice" value="other" onchange="toggleOtherPharmacy(true)" class="text-blue-600">
-          <span>صيدلية أخرى</span>
-        </label>
+    function renderVodafoneCashSection(container, currentDept) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'space-y-3';
+
+      const subBar = document.createElement('div');
+      subBar.className = 'flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold';
+
+      const isCash = activeSubFilter !== 'bills';
+      subBar.innerHTML = `
+        <button onclick="activeSubFilter='all'; renderActiveTabContent();" class="flex-1 py-2 rounded-xl transition ${isCash ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+          💵 احتاج فلوس كاش
+        </button>
+        <button onclick="activeSubFilter='bills'; renderActiveTabContent();" class="flex-1 py-2 rounded-xl transition ${!isCash ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}">
+          🧾 سداد فواتير وأقساط
+        </button>
       `;
+      wrapper.appendChild(subBar);
 
-      pharmDiv.innerHTML = `
-        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-          <span class="text-xl">💊</span>
-          <div>
-            <h3 class="font-extrabold text-sm text-slate-800">طلب علاج أو روشتة</h3>
-            <p class="text-[10px] text-slate-400">توصيل رسمي بسعر العلبة المدون بالفاتورة الأصلية</p>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الصيدلية:</label>
-          <div class="grid grid-cols-2 gap-2 text-xs">${radiosHTML}</div>
-          <div id="otherPharmacyContainer" class="hidden mt-2">
-            <input type="text" id="otherPharmacyInput" placeholder="اكتب اسم الصيدلية الأخرى بالقرية..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">اسم العلاج أو تفاصيل الروشتة (اختياري مع الصورة):</label>
-          <textarea id="pharmacyNotesInput" rows="2" placeholder="اكتب أسماء الأدوية المطلوبة أو الجرعات..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500"></textarea>
-        </div>
-
-        <!-- PRESCRIPTION PHOTO UPLOAD BOX -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">تصوير الروشتة أو علبة الدواء:</label>
-          
-          <div id="uploadPhotoContainer">
-            <label class="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 rounded-2xl p-3 text-xs text-blue-700 font-bold cursor-pointer transition">
-              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span id="pharmacyPhotoLabel">التقاط صورة الروشتة بالكاميرا أو المعرض 📷</span>
-              <span class="text-[10px] text-blue-500 font-normal">يتم رفع الصورة تلقائياً وتوليد رابط يفتح في الواتساب</span>
-              <input type="file" id="pharmacyPhotoInput" accept="image/*" class="hidden" onchange="handlePharmacyPhotoUpload(this)">
-            </label>
-          </div>
-
-          <!-- Preview & Upload Status -->
-          <div id="photoPreviewContainer" class="hidden mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <img id="prescriptionThumbnail" src="" class="w-12 h-12 object-cover rounded-lg border border-slate-300">
-              <div>
-                <p id="uploadStatusBadge" class="text-xs font-bold text-slate-800">تم اختيار الصورة</p>
-                <p id="uploadStatusSub" class="text-[10px] text-slate-400">جاهزة للإرسال</p>
-              </div>
+      if (isCash) {
+        // NEED CASH SERVICE
+        const cashCard = document.createElement('div');
+        cashCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+        cashCard.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-2xl">💵</span>
+            <div>
+              <h3 class="font-extrabold text-sm text-slate-800">خدمة سحب وإيداع الكاش دليفري</h3>
+              <p class="text-[10px] text-slate-400">تحويل محفظة فودافون كاش أو إنستاباي واستلام كاش لحد باب بيتك</p>
             </div>
-            <button onclick="removePharmacyPhoto()" class="text-red-500 hover:text-red-700 font-bold text-xs p-1">إلغاء ✕</button>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">نوع المعاملة:</label>
+              <select id="cashOpType" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+                <option value="سحب كاش لحد البيت (معاك فلوس في المحفظة وعايزها كاش ورقي)">سحب كاش لحد البيت (معاك رصيد وعايز كاش ورقي)</option>
+                <option value="إيداع وتحويل (معاك كاش وعايز تحوله لرقم محفظة أو إنستاباي)">إيداع وتحويل (معاك كاش وعايز تحوله لمحفظة)</option>
+                <option value="تحويل إنستاباي InstaPay">تحويل فوري عبر إنستاباي InstaPay</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">المبلغ المطلوب:</label>
+              <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+                <button type="button" onclick="setCashAmount(200)" class="p-1.5 bg-slate-100 hover:bg-emerald-50 rounded-lg border font-bold">200 ج</button>
+                <button type="button" onclick="setCashAmount(500)" class="p-1.5 bg-slate-100 hover:bg-emerald-50 rounded-lg border font-bold">500 ج</button>
+                <button type="button" onclick="setCashAmount(1000)" class="p-1.5 bg-slate-100 hover:bg-emerald-50 rounded-lg border font-bold">1000 ج</button>
+                <button type="button" onclick="setCashAmount(2000)" class="p-1.5 bg-slate-100 hover:bg-emerald-50 rounded-lg border font-bold">2000 ج</button>
+              </div>
+              <input type="number" id="cashAmountInput" placeholder="أو اكتب أي مبلغ آخر بالجنيه..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-emerald-800">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="cashCustName" placeholder="الاسم بالكامل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="tel" id="cashCustPhone" placeholder="رقم هاتفك للتواصل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
+            </div>
+
+            <input type="text" id="cashTargetPhone" placeholder="رقم المحفظة المراد التحويل منها أو إليها (اختياري)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
+            <input type="text" id="cashAddress" placeholder="عنوانك في الغريزات لتوصيل الكاش *" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+          </div>
+
+          <button onclick="dispatchCashServiceViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
+            طلب الكاش دليفري عبر واتساب فوراً 💬
+          </button>
+        `;
+        wrapper.appendChild(cashCard);
+      } else {
+        // BILL & INSTALLMENT PAYMENT SERVICE
+        const billCard = document.createElement('div');
+        billCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+        billCard.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-2xl">🧾</span>
+            <div>
+              <h3 class="font-extrabold text-sm text-slate-800">سداد الفواتير وشحن الكروت والأقساط</h3>
+              <p class="text-[10px] text-slate-400">سداد رسمي مع إيصال أو إشعار دفع فوري معتمد</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">نوع الفاتورة أو جهة السداد:</label>
+              <select id="billServiceType" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+                <option value="فاتورة كهرباء / شحن كارت كهرباء">فاتورة كهرباء / شحن كارت كهرباء</option>
+                <option value="فاتورة مياه أو غاز طبيعي">فاتورة مياه أو غاز طبيعي</option>
+                <option value="شحن إنترنت منزلي (WE / فودافون / أورانج / اتصالات)">شحن باقة الإنترنت المنزلي Wi-Fi</option>
+                <option value="قسط شركة فاليو ValU">قسط شركة فاليو ValU</option>
+                <option value="قسط شركة أمان Aman">قسط شركة أمان Aman</option>
+                <option value="قسط شركة سهولة Souhoola">قسط شركة سهولة Souhoola</option>
+                <option value="قسط بي تك B.TECH">قسط بي تك B.TECH</option>
+                <option value="قسط شركة كونتكت Contact">قسط شركة كونتكت Contact</option>
+                <option value="مصاريف مدارس أو جامعات أو خدمات حكومية">مصاريف مدارس أو خدمات حكومية</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="billAccountCode" placeholder="رقم المشترك / كود السداد / رقم العداد *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="number" id="billAmount" placeholder="قيمة المبلغ المراد دفعه *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="billCustName" placeholder="اسم صاحب الفاتورة *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="tel" id="billCustPhone" placeholder="رقم الهاتف لاستلام الإيصال *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
+            </div>
+
+            <textarea id="billNotes" rows="1.5" placeholder="ملاحظات إضافية (اختياري)..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+          </div>
+
+          <button onclick="dispatchBillServiceViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
+            طلب سداد الفاتورة عبر واتساب فوراً 🧾
+          </button>
+        `;
+        wrapper.appendChild(billCard);
+      }
+
+      container.appendChild(wrapper);
+    }
+
+    function setCashAmount(val) {
+      const input = document.getElementById('cashAmountInput');
+      if (input) input.value = val;
+    }
+
+    function dispatchCashServiceViaWhatsApp() {
+      const op = document.getElementById('cashOpType')?.value || 'سحب كاش';
+      const amount = document.getElementById('cashAmountInput')?.value.trim();
+      const name = document.getElementById('cashCustName')?.value.trim();
+      const phone = document.getElementById('cashCustPhone')?.value.trim();
+      const targetPhone = document.getElementById('cashTargetPhone')?.value.trim();
+      const address = document.getElementById('cashAddress')?.value.trim();
+
+      if (!amount || !name || !phone || !address) {
+        alert('من فضلك أكمل البيانات: المبلغ، الاسم، رقم الهاتف، وعنوانك.');
+        return;
+      }
+
+      let msg = `💵 *طلب خدمة كاش - تسوق الغريزات*\n`;
+      msg += `---------------------------------\n`;
+      msg += `📌 *نوع المعاملة:* ${op}\n`;
+      msg += `💰 *المبلغ:* ${amount} جنيه\n`;
+      msg += `👤 *العميل:* ${name}\n`;
+      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `🏠 *العنوان للتسليم:* ${address}\n`;
+      if (targetPhone) msg += `📲 *رقم المحفظة / الحساب:* ${targetPhone}\n`;
+      msg += `---------------------------------\n`;
+      msg += `⚡ _يصلك المندوب لحد البيت لتنفيذ المعاملة فوراً._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
+    function dispatchBillServiceViaWhatsApp() {
+      const type = document.getElementById('billServiceType')?.value || 'سداد فواتير';
+      const code = document.getElementById('billAccountCode')?.value.trim();
+      const amount = document.getElementById('billAmount')?.value.trim();
+      const name = document.getElementById('billCustName')?.value.trim();
+      const phone = document.getElementById('billCustPhone')?.value.trim();
+      const notes = document.getElementById('billNotes')?.value.trim();
+
+      if (!code || !amount || !name || !phone) {
+        alert('من فضلك أكمل البيانات: كود السداد/رقم العداد، المبلغ، الاسم، ورقم الهاتف.');
+        return;
+      }
+
+      let msg = `🧾 *طلب سداد فاتورة / قسط - تسوق الغريزات*\n`;
+      msg += `---------------------------------\n`;
+      msg += `🏢 *جهة السداد:* ${type}\n`;
+      msg += `🔢 *كود المشترك / رقم العداد / القسط:* ${code}\n`;
+      msg += `💰 *قيمة المبلغ:* ${amount} جنيه\n`;
+      msg += `👤 *صاحب الفاتورة:* ${name}\n`;
+      msg += `📞 *رقم الهاتف:* ${phone}\n`;
+      if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
+      msg += `---------------------------------\n`;
+      msg += `✅ _يتم السداد فوراً وإرسال صورة إيصال الدفع المعتمد في الشات._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
+    // ========================================================
+    // C. SECTION: PHARMACY (الصيدلية - اطلب ما تحتاج)
+    // ========================================================
+    function renderPharmacySection(container, currentDept) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'space-y-3';
+
+      const pharmCard = document.createElement('div');
+      pharmCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+      pharmCard.innerHTML = `
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+          <span class="text-2xl">💊</span>
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-800">اطلب علاجك وروشتتك من الصيدلية</h3>
+            <p class="text-[10px] text-slate-400">توصيل رسمي فوري بسعر الفاتورة الأصلية للمحل</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">اختر الصيدلية المفضلة بالقرية:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
+                <input type="radio" name="pharmChoice" value="صيدلية عبدالكريم" checked class="text-blue-600">
+                <span>صيدلية عبدالكريم</span>
+              </label>
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
+                <input type="radio" name="pharmChoice" value="صيدلية أحمد عبدالعليم" class="text-blue-600">
+                <span>صيدلية أحمد عبدالعليم</span>
+              </label>
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
+                <input type="radio" name="pharmChoice" value="صيدلية هبة" class="text-blue-600">
+                <span>صيدلية هبة</span>
+              </label>
+              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 cursor-pointer">
+                <input type="radio" name="pharmChoice" value="أقرب صيدلية متوفر بها العلاج" class="text-blue-600">
+                <span>أقرب صيدلية متوفرة</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">اكتب أسماء الأدوية أو الجرعات المطلوبة:</label>
+            <textarea id="pharmacyNotesInput" rows="2" placeholder="اكتب أسماء الأدوية أو مستلزمات الصيدلية..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+          </div>
+
+          <!-- PHOTO UPLOAD -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">أو ارفع صورة الروشتة بالكاميرا:</label>
+            <label class="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 rounded-2xl p-3 text-xs text-blue-700 font-bold cursor-pointer transition">
+              <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span id="pharmPhotoLabel">تصوير الروشتة بالكاميرا أو المعرض 📷</span>
+              <span class="text-[10px] text-blue-400 font-normal">يتم رفع الصورة تلقائياً وتوليد رابط يفتح في الواتساب</span>
+              <input type="file" id="pharmacyFileInput" accept="image/*" class="hidden" onchange="handlePharmacyPhotoUpload(this)">
+            </label>
+
+            <!-- Preview & Status -->
+            <div id="pharmPreviewBox" class="hidden mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <img id="pharmThumb" src="" class="w-12 h-12 object-cover rounded-lg border border-slate-300">
+                <div>
+                  <p id="pharmStatusBadge" class="text-xs font-bold text-slate-800">تم اختيار الصورة</p>
+                  <p id="pharmStatusSub" class="text-[10px] text-slate-400">جاهزة للإرسال</p>
+                </div>
+              </div>
+              <button onclick="removePharmacyPhoto()" class="text-red-500 font-bold text-xs p-1">إلغاء ✕</button>
+            </div>
           </div>
         </div>
 
@@ -896,11 +1293,17 @@
           إضافة طلب الروشتة للسلة 🛒
         </button>
       `;
-      container.appendChild(pharmDiv);
+      wrapper.appendChild(pharmCard);
+
+      // Render any OTC items present in sheet
+      if (currentDept.items && currentDept.items.length > 0) {
+        renderProductGrid(wrapper, currentDept.items, 'الصيدلية');
+      }
+
+      container.appendChild(wrapper);
     }
 
-    // IMAGE COMPRESSION & UPLOAD ENGINE
-    async function compressImageFile(file, maxDimension = 1200, quality = 0.8) {
+    async function compressImageFile(file, maxDimension = 1200, quality = 0.78) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -938,10 +1341,10 @@
       if (!input.files || !input.files[0]) return;
       const rawFile = input.files[0];
 
-      const previewBox = document.getElementById('photoPreviewContainer');
-      const thumb = document.getElementById('prescriptionThumbnail');
-      const badge = document.getElementById('uploadStatusBadge');
-      const sub = document.getElementById('uploadStatusSub');
+      const previewBox = document.getElementById('pharmPreviewBox');
+      const thumb = document.getElementById('pharmThumb');
+      const badge = document.getElementById('pharmStatusBadge');
+      const sub = document.getElementById('pharmStatusSub');
 
       if (previewBox) previewBox.classList.remove('hidden');
       if (thumb) thumb.src = URL.createObjectURL(rawFile);
@@ -953,10 +1356,7 @@
       pharmacyUploadState.remoteUrl = '';
 
       try {
-        // 1. Fast local canvas compression (reduces 10MB to ~150KB)
         const compressedBlob = await compressImageFile(rawFile, 1200, 0.78);
-
-        // 2. Upload to public image host (tmpfiles.org)
         const formData = new FormData();
         formData.append('file', compressedBlob, 'prescription_' + Date.now() + '.jpg');
 
@@ -968,17 +1368,16 @@
         if (uploadRes.ok) {
           const json = await uploadRes.json();
           if (json && json.data && json.data.url) {
-            // Convert tmpfiles.org/123/img.jpg to direct link tmpfiles.org/dl/123/img.jpg
             let directUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
             pharmacyUploadState.remoteUrl = directUrl;
-            if (badge) badge.textContent = '✅ تم رفع الصورة بنجاح!';
+            if (badge) badge.textContent = '✅ تم رفع الصورة وتوليد الرابط بنجاح!';
             if (sub) sub.innerHTML = `<a href="${directUrl}" target="_blank" class="text-blue-600 underline font-bold">معاينة رابط الصورة</a>`;
             return;
           }
         }
-        throw new Error('Upload server error');
+        throw new Error('Upload error');
       } catch (err) {
-        console.warn('Image host upload fallback:', err);
+        console.warn('Upload fallback:', err);
         if (badge) badge.textContent = '📷 الصورة محفوظة على هاتفك';
         if (sub) sub.textContent = 'يرجى إرفاقها مباشرة داخل محادثة الواتساب 📎';
       } finally {
@@ -987,34 +1386,19 @@
     }
 
     function removePharmacyPhoto() {
-      pharmacyUploadState = { file: null, previewUrl: '', remoteUrl: '', isUploading: false };
-      const previewBox = document.getElementById('photoPreviewContainer');
-      const input = document.getElementById('pharmacyPhotoInput');
+      pharmacyUploadState = { file: null, remoteUrl: '', isUploading: false };
+      const previewBox = document.getElementById('pharmPreviewBox');
+      const input = document.getElementById('pharmacyFileInput');
       if (previewBox) previewBox.classList.add('hidden');
       if (input) input.value = '';
     }
 
-    function toggleOtherPharmacy(show) {
-      const container = document.getElementById('otherPharmacyContainer');
-      if (container) {
-        if (show) container.classList.remove('hidden');
-        else container.classList.add('hidden');
-      }
-    }
-
     function addPharmacyOrder() {
-      const choiceRadio = document.querySelector('input[name="pharmacyChoice"]:checked');
-      let pharmName = choiceRadio ? choiceRadio.value : 'أقرب صيدلية';
-      
-      if (pharmName === 'other') {
-        const otherVal = document.getElementById('otherPharmacyInput')?.value.trim();
-        pharmName = otherVal ? `صيدلية ${otherVal}` : 'صيدلية أخرى بالقرية';
-      }
-
-      const pharmNotes = document.getElementById('pharmacyNotesInput')?.value.trim() || '';
+      const choice = document.querySelector('input[name="pharmChoice"]:checked')?.value || 'صيدلية بالقرية';
+      const notes = document.getElementById('pharmacyNotesInput')?.value.trim() || '';
       const hasPhoto = !!pharmacyUploadState.file;
 
-      if (!pharmNotes && !hasPhoto) {
+      if (!notes && !hasPhoto) {
         alert('اكتب أسماء الأدوية أو التقط صورة الروشتة أولاً.');
         return;
       }
@@ -1022,175 +1406,326 @@
       cart.push({
         id: 'pharm_' + Date.now(),
         type: 'pharmacy_order',
-        name: `طلب من (${pharmName}): ${pharmNotes || 'روشتة علاج مرفقة'}`,
+        name: `طلب من (${choice}): ${notes || 'روشتة علاج مرفقة بالصورة'}`,
         price: 0,
         qty: 1,
         hasImage: hasPhoto,
         imageUrl: pharmacyUploadState.remoteUrl || ''
       });
 
-      // Reset upload for next items
       removePharmacyPhoto();
+      updateCartUI();
+      openCartModal();
+    }
+
+    // ========================================================
+    // D. SECTION: LIBRARY & PRINTING (المكتبة)
+    // ========================================================
+    function renderLibrarySection(container, currentDept) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'space-y-3';
+
+      // Sub-bar: طباعة وتصوير vs منتجات مكتبية
+      renderSubCategoriesBar(wrapper, currentDept);
+
+      if (activeSubFilter === 'طباعة وتصوير') {
+        const printCard = document.createElement('div');
+        printCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+        printCard.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+            <span class="text-2xl">🖨️</span>
+            <div>
+              <h3 class="font-extrabold text-sm text-slate-800">خدمة الطباعة والتصوير السريع</h3>
+              <p class="text-[10px] text-slate-400">طباعة ملازم وأوراق ومستندات من الواتساب مع توصيل لباب بيتك</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">نوع الطباعة:</label>
+              <select id="printTypeSelect" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+                <option value="طباعة ورق A4 أبيض وأسود (1.5 ج للورقة)">طباعة ورق A4 أبيض وأسود (1.5 ج للورقة)</option>
+                <option value="طباعة ورق A4 ألوان بجودة ليزر (5 ج للورقة)">طباعة ورق A4 ألوان بجودة ليزر (5 ج للورقة)</option>
+                <option value="تصوير مستندات فوتوكوبي (1 ج للورقة)">تصوير مستندات فوتوكوبي (1 ج للورقة)</option>
+                <option value="طباعة وتجليد سلك بلاستيك للملازم">طباعة وتجليد سلك بلاستيك للملازم</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="printCountInput" placeholder="عدد الورق أو النسخ *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+              <input type="text" id="printCustName" placeholder="الاسم بالكامل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            </div>
+
+            <textarea id="printNotes" rows="2" placeholder="ملاحظات الطباعة (مثلاً: وجه وظهر، أو ألوان معينة)..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+          </div>
+
+          <button onclick="dispatchPrintOrderViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
+            إرسال ملفات الطباعة عبر واتساب 💬
+          </button>
+        `;
+        wrapper.appendChild(printCard);
+      }
+
+      // Products grid for the library
+      const filtered = activeSubFilter === 'all'
+        ? currentDept.items
+        : currentDept.items.filter(i => i.subCat === activeSubFilter);
+
+      renderProductGrid(wrapper, filtered, 'المكتبة');
+      container.appendChild(wrapper);
+    }
+
+    function dispatchPrintOrderViaWhatsApp() {
+      const type = document.getElementById('printTypeSelect')?.value || 'طباعة مستندات';
+      const count = document.getElementById('printCountInput')?.value.trim();
+      const name = document.getElementById('printCustName')?.value.trim();
+      const notes = document.getElementById('printNotes')?.value.trim();
+
+      if (!count || !name) {
+        alert('اكتب عدد الورق واسمك للتواصل.');
+        return;
+      }
+
+      let msg = `🖨️ *طلب طباعة وتصوير مستندات - تسوق الغريزات*\n`;
+      msg += `---------------------------------\n`;
+      msg += `📄 *النوع:* ${type}\n`;
+      msg += `🔢 *عدد الورق/النسخ:* ${count}\n`;
+      msg += `👤 *العميل:* ${name}\n`;
+      if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
+      msg += `---------------------------------\n`;
+      msg += `📎 _يرجى إرسال ملف الـ PDF أو الصور المراد طباعتها في هذا الشات الآن._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
+    // ========================================================
+    // E. SECTION: CUSTOM REQUEST / MISSING ITEMS (طلب مخصص)
+    // ========================================================
+    function renderCustomOrderServiceSection(container, currentDept) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'space-y-3';
+
+      const customCard = document.createElement('div');
+      customCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
+      customCard.innerHTML = `
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+          <span class="text-2xl">⚡</span>
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-800">طلب منتج أو خدمة غير متوفرة</h3>
+            <p class="text-[10px] text-slate-400">أي حاجة نفسك فيها أو خدمة مش لاقيها، مندوبنا هيوفرها لك</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">اكتب ما تحتاجه بالتفصيل *</label>
+            <textarea id="customServiceDetails" rows="3" placeholder="اكتب اسم الصنف، الموديل، الكمية، أو أي خدمة خاصة ترغب بها..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">المكان المطلوب الشراء منه:</label>
+            <input type="text" id="customServiceLocation" placeholder="مثلاً: محل كذا، داخل الغريزات، طهطا، المركز، أو أي مكان..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="customServiceName" placeholder="الاسم بالكامل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            <input type="tel" id="customServicePhone" placeholder="رقم الهاتف للتواصل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <button onclick="dispatchCustomServiceViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
+            إرسال الطلب الخاص عبر واتساب فوراً 💬
+          </button>
+          <button onclick="addCustomServiceToCart()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-300 transition">
+            🛒 أو إضافة الطلب لسلة المشتريات
+          </button>
+        </div>
+      `;
+      wrapper.appendChild(customCard);
+
+      // Suggestions from sheet
+      if (currentDept.items && currentDept.items.length > 0) {
+        renderProductGrid(wrapper, currentDept.items, 'خدمات خاصة');
+      }
+
+      container.appendChild(wrapper);
+    }
+
+    function dispatchCustomServiceViaWhatsApp() {
+      const details = document.getElementById('customServiceDetails')?.value.trim();
+      const location = document.getElementById('customServiceLocation')?.value.trim() || 'أي مكان';
+      const name = document.getElementById('customServiceName')?.value.trim();
+      const phone = document.getElementById('customServicePhone')?.value.trim();
+
+      if (!details || !name || !phone) {
+        alert('من فضلك اكتب تفاصيل الطلب، اسمك، ورقم هاتفك.');
+        return;
+      }
+
+      let msg = `⚡ *طلب منتج أو خدمة غير متوفرة - تسوق الغريزات*\n`;
+      msg += `---------------------------------\n`;
+      msg += `📝 *تفاصيل الطلب:* ${details}\n`;
+      msg += `📍 *المكان المطلوب الشراء منه:* ${location}\n`;
+      msg += `👤 *العميل:* ${name}\n`;
+      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `---------------------------------\n`;
+      msg += `🛵 _سيتم مراجعة الطلب والتواصل معك لتأكيد التكلفة والشراء فوراً._`;
+
+      const cleanPhone = appConfig.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(encodedUrl, '_blank');
+    }
+
+    function addCustomServiceToCart() {
+      const details = document.getElementById('customServiceDetails')?.value.trim();
+      const location = document.getElementById('customServiceLocation')?.value.trim() || 'أي مكان';
+
+      if (!details) {
+        alert('اكتب تفاصيل الطلب أولاً.');
+        return;
+      }
+
+      cart.push({
+        id: 'cust_errand_' + Date.now(),
+        type: 'custom',
+        name: `طلب خاص [من: ${location}]: ${details}`,
+        price: 0,
+        qty: 1
+      });
 
       updateCartUI();
       openCartModal();
     }
 
     // ========================================================
-    // SECTION 3: RESTAURANTS
+    // F. SECTION: STANDARD CATALOG (Market, Restaurants, Veg, Gifts, Hardware)
     // ========================================================
-    function renderRestaurantsSection(container, currentDept) {
-      const listDiv = document.createElement('div');
-      listDiv.className = 'space-y-2.5';
+    function renderStandardCatalogSection(container, currentDept) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'space-y-3';
 
-      currentDept.items.forEach(rest => {
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3';
-        card.innerHTML = `
-          <div class="flex-1">
-            <h4 class="font-extrabold text-xs sm:text-sm text-slate-800">${rest.name}</h4>
-            <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">${rest.notes || 'وجبات ومأكولات طازجة'}</p>
-          </div>
-          <button onclick="startRestaurantOrder('${rest.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs active:scale-95 transition shrink-0">
-            اطلب الآن
-          </button>
-        `;
-        listDiv.appendChild(card);
-      });
-      container.appendChild(listDiv);
-    }
+      // 1. Sub-categories bar
+      renderSubCategoriesBar(wrapper, currentDept);
 
-    function startRestaurantOrder(restName) {
-      const itemText = prompt(`اكتب وجبتك بالتفصيل من (${restName}):\n(مثلاً: 1 فطيرة مشلتت، أو 2 كشري...)`, '');
-      if (itemText && itemText.trim()) {
-        cart.push({
-          id: 'rest_' + Date.now(),
-          type: 'restaurant_order',
-          name: `طلب من ${restName}: ${itemText.trim()}`,
-          price: 0,
-          qty: 1
-        });
-        updateCartUI();
-        openCartModal();
-      }
-    }
-
-    // ========================================================
-    // SECTION 4: CATALOG DEPARTMENTS
-    // ========================================================
-    function renderCatalogSection(container, currentDept) {
-      const sectionDiv = document.createElement('div');
-      sectionDiv.className = 'space-y-2.5';
-
-      // Sub-categories Bar
-      if (currentDept.subCategories && currentDept.subCategories.length > 0) {
-        const subBar = document.createElement('div');
-        subBar.className = 'flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5 text-xs';
-
-        const allBtn = document.createElement('button');
-        allBtn.className = `g-filter ${activeSubFilter === 'all' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition`;
-        allBtn.textContent = 'الكل';
-        allBtn.onclick = () => {
-          activeSubFilter = 'all';
-          renderActiveTabContent();
-        };
-        subBar.appendChild(allBtn);
-
-        currentDept.subCategories.forEach(subName => {
-          const btn = document.createElement('button');
-          const isAct = activeSubFilter === subName;
-          btn.className = `g-filter ${isAct ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition flex items-center gap-1`;
-          btn.innerHTML = `<span>${getEmoji(subName)}</span><span>${subName}</span>`;
-          btn.onclick = () => {
-            activeSubFilter = subName;
-            renderActiveTabContent();
-          };
-          subBar.appendChild(btn);
-        });
-
-        sectionDiv.appendChild(subBar);
-      }
-
-      // Quick Request Box
+      // 2. Quick item request box
       const quickBox = document.createElement('div');
       quickBox.className = 'bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm flex items-center gap-2';
       quickBox.innerHTML = `
-        <span class="text-base">${currentDept.emoji}</span>
-        <input type="text" id="customDeptInput" placeholder="صنف مش لاقيه في ${currentDept.name}؟ اكتبه هنا..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500">
-        <button onclick="addCustomDepartmentItem('${currentDept.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl active:scale-95 transition">إضافة</button>
+        <span class="text-base">${currentDept.emoji || '🛍️'}</span>
+        <input type="text" id="quickAddInput" placeholder="صنف مش لاقيه في ${currentDept.name}؟ اكتبه هنا..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
+        <button onclick="addQuickItemToCart('${currentDept.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl active:scale-95 transition">إضافة</button>
       `;
-      sectionDiv.appendChild(quickBox);
+      wrapper.appendChild(quickBox);
 
-      // Grid of Products (WITH PHOTO SUPPORT!)
-      const grid = document.createElement('div');
-      grid.className = 'grid grid-cols-2 gap-2.5';
-
+      // 3. Grid of Products
       const filteredItems = activeSubFilter === 'all'
         ? currentDept.items
         : currentDept.items.filter(i => i.subCat === activeSubFilter);
 
-      if (filteredItems.length === 0) {
-        grid.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-400 text-xs font-semibold">لا توجد أصناف في هذا القسم حالياً</div>`;
-      } else {
-        filteredItems.forEach(item => {
-          const inCartItem = cart.find(c => c.id === item.id);
-          const qty = inCartItem ? inCartItem.qty : 0;
+      renderProductGrid(wrapper, filteredItems, currentDept.name);
+      container.appendChild(wrapper);
+    }
 
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition';
-          
-          let topVisual = '';
-          if (item.image) {
-            topVisual = `
-              <div class="w-full h-24 mb-2 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative">
-                <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
-                <span class="absolute top-1 left-1 text-[10px] font-bold text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full shadow-sm">
-                  ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
-                </span>
-              </div>
-            `;
-          } else {
-            topVisual = `
-              <div class="flex items-start justify-between">
-                <span class="text-2xl">${item.icon || currentDept.emoji}</span>
-                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                  ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
-                </span>
-              </div>
-            `;
-          }
+    function renderSubCategoriesBar(container, currentDept) {
+      if (!currentDept.subCategories || currentDept.subCategories.length === 0) return;
 
-          card.innerHTML = `
-            <div>
-              ${topVisual}
-              <h4 class="font-bold text-xs text-slate-800 mt-1.5 leading-tight">${item.name}</h4>
-              <p class="text-[10px] text-slate-400 mt-0.5">${item.subCat && item.subCat !== 'عام' ? item.subCat : currentDept.name}</p>
-            </div>
+      const subBar = document.createElement('div');
+      subBar.className = 'flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5 text-xs';
 
-            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-              ${qty > 0 ? `
-                <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-full justify-between">
-                  <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white text-slate-700 font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">-</button>
-                  <span class="text-xs font-black text-slate-900">${qty}</span>
-                  <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">+</button>
-                </div>
-              ` : `
-                <button onclick="addGenericToCart('${item.id}')" class="w-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-bold text-xs py-1.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
-                  <span>+ أضف</span>
-                </button>
-              `}
-            </div>
-          `;
-          grid.appendChild(card);
-        });
+      const allBtn = document.createElement('button');
+      allBtn.className = `g-filter ${activeSubFilter === 'all' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition`;
+      allBtn.textContent = 'كل المنتجات';
+      allBtn.onclick = () => {
+        activeSubFilter = 'all';
+        renderActiveTabContent();
+      };
+      subBar.appendChild(allBtn);
+
+      currentDept.subCategories.forEach(subName => {
+        const isAct = activeSubFilter === subName;
+        const btn = document.createElement('button');
+        btn.className = `g-filter ${isAct ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition flex items-center gap-1`;
+        btn.innerHTML = `<span>${getDepartmentEmoji(subName)}</span><span>${subName}</span>`;
+        btn.onclick = () => {
+          activeSubFilter = subName;
+          renderActiveTabContent();
+        };
+        subBar.appendChild(btn);
+      });
+
+      container.appendChild(subBar);
+    }
+
+    function renderProductGrid(container, items, deptName) {
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 gap-2.5';
+
+      if (!items || items.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-400 text-xs font-semibold">لا توجد أصناف معروضة في هذا القسم حالياً</div>`;
+        container.appendChild(grid);
+        return;
       }
 
-      sectionDiv.appendChild(grid);
-      container.appendChild(sectionDiv);
+      items.forEach(item => {
+        const inCartItem = cart.find(c => c.id === item.id);
+        const qty = inCartItem ? inCartItem.qty : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition';
+
+        let topVisual = '';
+        if (item.image) {
+          topVisual = `
+            <div class="w-full h-24 mb-2 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative">
+              <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-2xl\\'>${item.icon || getDepartmentEmoji(deptName)}</div>'">
+              <span class="absolute top-1 left-1 text-[10px] font-bold text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full shadow-sm">
+                ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
+              </span>
+            </div>
+          `;
+        } else {
+          topVisual = `
+            <div class="flex items-start justify-between">
+              <span class="text-2xl">${item.icon || getDepartmentEmoji(deptName)}</span>
+              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
+              </span>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div>
+            ${topVisual}
+            <h4 class="font-bold text-xs text-slate-800 mt-1.5 leading-tight">${item.name}</h4>
+            <p class="text-[10px] text-slate-400 mt-0.5">${item.subCat && item.subCat !== 'عام' ? item.subCat : deptName}</p>
+          </div>
+
+          <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+            ${qty > 0 ? `
+              <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-full justify-between">
+                <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white text-slate-700 font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">-</button>
+                <span class="text-xs font-black text-slate-900">${qty}</span>
+                <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">+</button>
+              </div>
+            ` : `
+              <button onclick="addGenericToCart('${item.id}')" class="w-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-bold text-xs py-1.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
+                <span>+ أضف</span>
+              </button>
+            `}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      container.appendChild(grid);
     }
 
     // ==========================================
-    // CART OPERATIONS
+    // 6. CART OPERATIONS
     // ==========================================
     function addGenericToCart(itemId) {
       let found = null;
@@ -1227,28 +1762,27 @@
       renderActiveTabContent();
     }
 
-    function addCustomDepartmentItem(deptName) {
-      const input = document.getElementById('customDeptInput');
-      const text = input.value.trim();
+    function addQuickItemToCart(deptName) {
+      const input = document.getElementById('quickAddInput');
+      const text = input ? input.value.trim() : '';
       if (!text) {
         alert('اكتب اسم الطلب أولاً');
         return;
       }
 
       cart.push({
-        id: 'custom_' + Date.now(),
+        id: 'quick_' + Date.now(),
         type: 'custom',
         name: `[${deptName}] ${text}`,
         price: 0,
         qty: 1
       });
 
-      input.value = '';
+      if (input) input.value = '';
       updateCartUI();
       openCartModal();
     }
 
-    // GPS Location
     function captureGPSLocation() {
       const btnText = document.getElementById('btnGetLocationText');
       const hint = document.getElementById('locationStatusHint');
@@ -1268,7 +1802,7 @@
           const lng = position.coords.longitude;
           userGPSLocationUrl = `https://maps.google.com/?q=${lat},${lng}`;
           
-          if (btnText) btnText.textContent = '✅ تم تحديد موقعك بدقة (انقر للتغيير)';
+          if (btnText) btnText.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
           if (errandGps) errandGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
           if (hint) {
             hint.textContent = 'تم حفظ الإحداثيات وسيتم إرسال رابط الخريطة مع الطلب في واتساب';
@@ -1310,9 +1844,9 @@
         itemRow.className = 'flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs';
         
         let subText = item.price > 0 ? `~ ${item.price * item.qty} ج` : 'حسب الفاتورة';
-        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'restaurant_order' ? '🍔' : item.type === 'special_errand' ? '🚖' : '🛍️';
+        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'special_errand' ? '🛵' : '🛍️';
 
-        let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة روشتة مرفقة</span>` : '');
+        let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة مرفقة</span>` : '');
 
         itemRow.innerHTML = `
           <div class="flex items-center gap-1.5 flex-1 pr-1 truncate">
@@ -1345,7 +1879,6 @@
       document.getElementById('summaryGrandTotal').textContent = approxSubtotal + fee;
     }
 
-    // AUTO-HIDE CART BAR WHEN MODAL IS OPEN
     function openCartModal() {
       renderCartModalItems();
       updateDeliveryFee();
@@ -1364,10 +1897,10 @@
         return;
       }
 
-      const name = document.getElementById('custName').value.trim();
-      const phone = document.getElementById('custPhone').value.trim();
-      const address = document.getElementById('custAddress').value.trim();
-      const notes = document.getElementById('custNotes').value.trim();
+      const name = document.getElementById('custName')?.value.trim();
+      const phone = document.getElementById('custPhone')?.value.trim();
+      const address = document.getElementById('custAddress')?.value.trim();
+      const notes = document.getElementById('custNotes')?.value.trim();
 
       if (!name || !phone || !address) {
         alert('من فضلك أكمل بياناتك: (الاسم، رقم الهاتف، وعنوانك في الغريزات).');
@@ -1380,7 +1913,7 @@
       const grandTotal = approxSubtotal + fee;
 
       let msg = `🛵 *طلب جديد - تسوق الغريزات*\n`;
-      msg += `📍 *القرية:* الغريزات\n`;
+      msg += `📍 *القرية:* الغريزات وما حولها\n`;
       msg += `---------------------------------\n`;
       msg += `👤 *العميل:* ${name}\n`;
       msg += `📞 *الهاتف:* ${phone}\n`;
@@ -1397,8 +1930,6 @@
       cart.forEach((item, idx) => {
         let priceTag = item.price > 0 ? `(~${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
         msg += `${idx + 1}. ${item.qty} × ${item.name} ${priceTag}\n`;
-        
-        // DIRECT CLICKABLE IMAGE LINK IN WHATSAPP!
         if (item.imageUrl) {
           msg += `   📷 *رابط صورة الروشتة/الطلب:* ${item.imageUrl}\n`;
         } else if (item.hasImage) {
