@@ -80,7 +80,7 @@
           <div class="flex items-center gap-1.5">
             <h1 class="font-black text-sm sm:text-base text-slate-900 leading-none">تسوق الغريزات</h1>
             <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-emerald-500" title="متصل"></span>
-            <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full">v8.0</span>
+            <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full">v9.0</span>
           </div>
           <p class="text-[10px] text-slate-400 font-semibold mt-0.5">خدمة دليفري ومشاوير القرية</p>
         </div>
@@ -271,6 +271,76 @@
         </a>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ==================== WEIGHT SELECTION MODAL ==================== -->
+  <div id="weightModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up">
+      <!-- Modal Header -->
+      <div class="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <span id="wmItemIcon" class="text-2xl">⚖️</span>
+          <div>
+            <h3 id="wmItemTitle" class="font-black text-sm text-slate-900 leading-tight">تحديد الوزن المطلوب</h3>
+            <p id="wmItemUnitPrice" class="text-[11px] text-emerald-700 font-bold">سعر الكيلو: ~ 0 ج</p>
+          </div>
+        </div>
+        <button onclick="closeWeightModal()" class="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center font-bold text-xs transition">✕</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-4">
+        <!-- Live Price Calculation Card -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-3.5 text-white shadow-md text-center">
+          <p class="text-[11px] text-emerald-100 font-medium">السعر التقديري حسب الوزن:</p>
+          <div class="flex items-center justify-center gap-2 mt-1">
+            <span id="wmLiveCalculation" class="text-xl font-black">1 كجم × 0 ج = ~ 0 ج</span>
+          </div>
+          <p class="text-[10px] text-emerald-100/90 mt-1">* الحساب النهائي الفعلي يكون بالجرام بدقة طبقاً لوزن الميزان ولحظة الشراء</p>
+        </div>
+
+        <!-- Quick Weight Presets Pills -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر وزناً سريعاً بالكبسة:</label>
+          <div id="wmPresetsContainer" class="grid grid-cols-4 gap-1.5 text-xs">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Custom Weight Stepper -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+          <label class="block text-xs font-bold text-slate-700 text-center">أو حدد الوزن بالجرام / الكيلو بدقة:</label>
+          <div class="flex items-center justify-center gap-3">
+            <button type="button" onclick="adjustModalWeight(-0.5)" class="w-10 h-10 rounded-xl bg-white text-slate-800 border border-slate-300 font-black text-lg shadow-sm flex items-center justify-center active:scale-95 hover:bg-slate-100">-</button>
+            <div class="flex items-baseline gap-1">
+              <input type="number" id="wmWeightInput" step="0.25" min="0.25" max="50" value="1" oninput="onModalWeightInputChange()" class="w-24 text-center text-xl font-black text-slate-900 bg-white border border-slate-300 rounded-xl py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <span class="text-xs font-black text-slate-600">كجم</span>
+            </div>
+            <button type="button" onclick="adjustModalWeight(0.5)" class="w-10 h-10 rounded-xl bg-emerald-600 text-white font-black text-lg shadow-sm flex items-center justify-center active:scale-95 hover:bg-emerald-700">+</button>
+          </div>
+          <div class="flex justify-center gap-2 pt-1 text-[11px]">
+            <button type="button" onclick="adjustModalWeight(-0.25)" class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-bold active:scale-95">- ربع كجم</button>
+            <button type="button" onclick="adjustModalWeight(0.25)" class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-bold active:scale-95">+ ربع كجم</button>
+          </div>
+        </div>
+
+        <!-- Butcher / Greengrocer Notes (e.g. cutting, cleaning) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">تعليمات وتفاصيل للمحل (اختياري):</label>
+          <input type="text" id="wmItemNotes" placeholder="مثلاً: تقطيع 4 قطع، تنظيف وشوي، خضار مستوي للطبيخ، أو أي ملحوظة..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium">
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 border-t border-slate-100 bg-slate-50 flex items-center gap-2">
+        <button type="button" onclick="confirmWeightModalAddToCart()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5">
+          <span>🛒 تأكيد وإضافة للسلة</span>
+        </button>
+        <button type="button" onclick="closeWeightModal()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition">
+          إلغاء
+        </button>
+      </div>
     </div>
   </div>
 
@@ -608,7 +678,7 @@
     // ==========================================
     function initApp() {
       // 1. Safe Cache Reading
-      const cached = safeGetStorage('wasaly_dynamic_departments_v8');
+      const cached = safeGetStorage('wasaly_dynamic_departments_v9');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
@@ -786,6 +856,7 @@
           id: 'sheet_' + idx,
           name: nameCol + (unitCol && unitCol !== 'سعر استرشادي' && unitCol !== 'فاتوره' && unitCol !== 'كيلو' && !nameCol.includes(unitCol) ? ` (${unitCol})` : ''),
           price: priceCol,
+          unit: unitCol,
           subCat: subCat || 'عام',
           notes: notesCol.startsWith('http') ? '' : notesCol,
           image: imgUrl,
@@ -798,7 +869,7 @@
       }
 
       catalogDepartments = newDepartments;
-      safeSetStorage('wasaly_dynamic_departments_v8', JSON.stringify(catalogDepartments));
+      safeSetStorage('wasaly_dynamic_departments_v9', JSON.stringify(catalogDepartments));
       renderDynamicMainTabs();
     }
 
@@ -1859,11 +1930,18 @@
 
       items.forEach(item => {
         const inCartItem = cart.find(c => c.id === item.id);
-        const qty = inCartItem ? inCartItem.qty : 0;
         const fallbackIcon = item.icon || getDepartmentEmoji(deptName);
+        const weighted = isItemWeighted(item, deptName);
 
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition';
+
+        let priceTag = '';
+        if (item.price > 0) {
+          priceTag = weighted ? `~ ${item.price} ج / كجم` : `~ ${item.price} ج`;
+        } else {
+          priceTag = 'حسب الفاتورة';
+        }
 
         let topVisual = '';
         if (item.image) {
@@ -1871,7 +1949,7 @@
             <div class="w-full h-24 mb-2 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative">
               <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy" onerror="handleImageError(this, '${fallbackIcon}')">
               <span class="absolute top-1 left-1 text-[10px] font-bold text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full shadow-sm">
-                ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
+                ${priceTag}
               </span>
             </div>
           `;
@@ -1880,10 +1958,51 @@
             <div class="flex items-start justify-between mb-2">
               <span class="text-2xl">${fallbackIcon}</span>
               <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
+                ${priceTag}
               </span>
             </div>
           `;
+        }
+
+        let actionButtonHTML = '';
+        if (weighted) {
+          if (inCartItem) {
+            const itemWeight = inCartItem.weight || 1;
+            const approxPrice = Math.round(itemWeight * item.price);
+            actionButtonHTML = `
+              <div class="flex items-center gap-1 bg-emerald-50 border border-emerald-200 rounded-xl p-1 w-full justify-between">
+                <button onclick="changeWeightQty('${item.id}', -0.5)" class="w-6 h-6 rounded-lg bg-white text-slate-700 font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">-</button>
+                <button onclick="openWeightModal('${item.id}')" class="text-center flex-1 px-1 py-0.5 hover:bg-emerald-100 rounded-lg transition" title="انقر لتعديل الوزن بدقة">
+                  <span class="text-xs font-black text-emerald-900 block leading-none">${itemWeight} كجم ⚖️</span>
+                  <span class="block text-[9px] text-emerald-700 font-bold mt-0.5">~ ${approxPrice} ج</span>
+                </button>
+                <button onclick="changeWeightQty('${item.id}', 0.5)" class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">+</button>
+              </div>
+            `;
+          } else {
+            actionButtonHTML = `
+              <button onclick="openWeightModal('${item.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 px-2 rounded-xl transition flex items-center justify-center gap-1 active:scale-95 shadow-sm">
+                <span>⚖️ حدد الوزن واطلب</span>
+              </button>
+            `;
+          }
+        } else {
+          const qty = inCartItem ? inCartItem.qty : 0;
+          if (qty > 0) {
+            actionButtonHTML = `
+              <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-full justify-between">
+                <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white text-slate-700 font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">-</button>
+                <span class="text-xs font-black text-slate-900">${qty}</span>
+                <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">+</button>
+              </div>
+            `;
+          } else {
+            actionButtonHTML = `
+              <button onclick="addGenericToCart('${item.id}')" class="w-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-bold text-xs py-1.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
+                <span>+ أضف</span>
+              </button>
+            `;
+          }
         }
 
         card.innerHTML = `
@@ -1894,17 +2013,7 @@
           </div>
 
           <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            ${qty > 0 ? `
-              <div class="flex items-center gap-2 bg-slate-100 rounded-xl p-1 w-full justify-between">
-                <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white text-slate-700 font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">-</button>
-                <span class="text-xs font-black text-slate-900">${qty}</span>
-                <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-brand-600 text-white font-black shadow-sm flex items-center justify-center active:scale-95 text-xs">+</button>
-              </div>
-            ` : `
-              <button onclick="addGenericToCart('${item.id}')" class="w-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 font-bold text-xs py-1.5 rounded-xl transition flex items-center justify-center gap-1 active:scale-95">
-                <span>+ أضف</span>
-              </button>
-            `}
+            ${actionButtonHTML}
           </div>
         `;
         grid.appendChild(card);
@@ -1914,8 +2023,191 @@
     }
 
     // ==========================================
-    // 7. CART OPERATIONS & PAYMENT TOGGLE
+    // 7. WEIGHT SELECTION & CART OPERATIONS
     // ==========================================
+    let currentWeightModalItem = null;
+    let currentWeightModalDept = '';
+
+    function isItemWeighted(item, deptName) {
+      if (!item) return false;
+      const d = deptName || item.mainCat || '';
+      const isTargetDept = d === 'الخضار والفاكهة' ||
+                           d === 'اللحوم والطيور والأسماك الطازجة' ||
+                           d.includes('خضار') ||
+                           d.includes('لحوم') ||
+                           d.includes('طيور') ||
+                           d.includes('أسماك');
+      const name = (item.name || '').trim();
+      const unit = (item.unit || '').trim();
+
+      // Exclude items sold by piece/pair in these departments
+      if (name.includes('كرنب') || name.includes('جوز حمام') || name.includes('كوارع') || name.includes('ربطة خضرة') || unit === 'واحدة' || unit === 'جوز' || unit === 'ربطة' || unit === 'طبق') {
+        return false;
+      }
+
+      if (isTargetDept) return true;
+      if (unit === 'كيلو' || unit === 'كجم' || name.includes('1 ك') || name.includes('(كيلو)')) return true;
+      return false;
+    }
+
+    function openWeightModal(itemId) {
+      let found = null;
+      let foundDept = null;
+      for (const deptKey in catalogDepartments) {
+        const item = catalogDepartments[deptKey].items.find(i => i.id === itemId);
+        if (item) {
+          found = item;
+          foundDept = deptKey;
+          break;
+        }
+      }
+      if (!found) return;
+
+      currentWeightModalItem = found;
+      currentWeightModalDept = foundDept || activeMainTab;
+
+      const inCart = cart.find(c => c.id === found.id);
+      const initialWeight = inCart && inCart.weight ? inCart.weight : 1;
+      const initialNotes = inCart && inCart.itemNotes ? inCart.itemNotes : '';
+
+      const modal = document.getElementById('weightModal');
+      const iconEl = document.getElementById('wmItemIcon');
+      const titleEl = document.getElementById('wmItemTitle');
+      const unitPriceEl = document.getElementById('wmItemUnitPrice');
+      const weightInput = document.getElementById('wmWeightInput');
+      const notesInput = document.getElementById('wmItemNotes');
+      const presetsContainer = document.getElementById('wmPresetsContainer');
+
+      if (iconEl) iconEl.textContent = found.icon || getDepartmentEmoji(foundDept);
+      if (titleEl) titleEl.textContent = found.name;
+      if (unitPriceEl) {
+        unitPriceEl.textContent = found.price > 0 ? `سعر الكيلو: ~ ${found.price} جنيه` : 'السعر: حسب الفاتورة الرسمية';
+      }
+      if (weightInput) weightInput.value = initialWeight;
+      if (notesInput) notesInput.value = initialNotes;
+
+      // Populate presets
+      if (presetsContainer) {
+        let presets = [0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3];
+        if (foundDept === 'الخضار والفاكهة' || (found.subCat && (found.subCat.includes('خضروات') || found.subCat.includes('فواكه')))) {
+          presets = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5];
+        }
+        presetsContainer.innerHTML = '';
+        presets.forEach(w => {
+          let label = `${w} كجم`;
+          if (w === 0.25) label = '¼ ك (ربع)';
+          else if (w === 0.5) label = '½ ك (نصف)';
+          else if (w === 0.75) label = '¾ ك (إلا ربع)';
+          else if (w === 1.5) label = '1.5 ك (كيلو ونصف)';
+          else if (w === 2.5) label = '2.5 ك (2 ونصف)';
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `wm-preset-pill py-1.5 px-1 rounded-xl border text-center font-bold transition active:scale-95 ${w === initialWeight ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'}`;
+          btn.textContent = label;
+          btn.onclick = () => {
+            setModalWeight(w);
+          };
+          presetsContainer.appendChild(btn);
+        });
+      }
+
+      updateModalLivePrice();
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeWeightModal() {
+      const modal = document.getElementById('weightModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function setModalWeight(val) {
+      val = Math.max(0.25, Math.round(parseFloat(val) * 100) / 100);
+      const input = document.getElementById('wmWeightInput');
+      if (input) input.value = val;
+      updateModalLivePrice();
+    }
+
+    function adjustModalWeight(delta) {
+      const input = document.getElementById('wmWeightInput');
+      if (!input) return;
+      let current = parseFloat(input.value) || 1;
+      let next = Math.max(0.25, Math.round((current + delta) * 100) / 100);
+      input.value = next;
+      updateModalLivePrice();
+    }
+
+    function onModalWeightInputChange() {
+      const input = document.getElementById('wmWeightInput');
+      if (!input) return;
+      let val = parseFloat(input.value);
+      if (isNaN(val) || val <= 0) val = 1;
+      updateModalLivePrice();
+    }
+
+    function updateModalLivePrice() {
+      if (!currentWeightModalItem) return;
+      const input = document.getElementById('wmWeightInput');
+      const calcEl = document.getElementById('wmLiveCalculation');
+      const weight = parseFloat(input?.value) || 1;
+      const unitPrice = currentWeightModalItem.price || 0;
+      const total = Math.round(weight * unitPrice);
+
+      if (calcEl) {
+        if (unitPrice > 0) {
+          calcEl.textContent = `${weight} كجم × ${unitPrice} ج = ~ ${total} ج`;
+        } else {
+          calcEl.textContent = `${weight} كجم (حسب الفاتورة)`;
+        }
+      }
+    }
+
+    function confirmWeightModalAddToCart() {
+      if (!currentWeightModalItem) return;
+      const input = document.getElementById('wmWeightInput');
+      const notesInput = document.getElementById('wmItemNotes');
+      const weight = Math.max(0.25, parseFloat(input?.value) || 1);
+      const notes = notesInput ? notesInput.value.trim() : '';
+
+      const idx = cart.findIndex(c => c.id === currentWeightModalItem.id);
+      if (idx !== -1) {
+        cart[idx].weight = weight;
+        cart[idx].qty = 1;
+        cart[idx].isWeighted = true;
+        cart[idx].itemNotes = notes;
+      } else {
+        cart.push({
+          id: currentWeightModalItem.id,
+          type: 'weighted',
+          isWeighted: true,
+          name: currentWeightModalItem.name,
+          price: currentWeightModalItem.price,
+          weight: weight,
+          qty: 1,
+          itemNotes: notes,
+          mainCat: currentWeightModalDept || activeMainTab,
+          subCat: currentWeightModalItem.subCat || '',
+          image: currentWeightModalItem.image || ''
+        });
+      }
+
+      closeWeightModal();
+      updateCartUI();
+      renderActiveTabContent();
+    }
+
+    function changeWeightQty(itemId, delta) {
+      const idx = cart.findIndex(c => c.id === itemId);
+      if (idx !== -1) {
+        cart[idx].weight = Math.round((cart[idx].weight + delta) * 100) / 100;
+        if (cart[idx].weight <= 0) {
+          cart.splice(idx, 1);
+        }
+      }
+      updateCartUI();
+      renderActiveTabContent();
+    }
+
     function addGenericToCart(itemId) {
       let found = null;
       let foundDept = null;
@@ -2031,8 +2323,13 @@
     }
 
     function updateCartUI() {
-      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-      const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const totalCount = cart.length;
+      const approxSubtotal = cart.reduce((sum, item) => {
+        if (item.isWeighted || item.weight) {
+          return sum + Math.round((item.weight || 1) * item.price);
+        }
+        return sum + Math.round(item.price * item.qty);
+      }, 0);
 
       const badge = document.getElementById('cartCountBadge');
       const headerCount = document.getElementById('headerCartCount');
@@ -2051,17 +2348,24 @@
       if (!list) return;
 
       if (cart.length === 0) {
-        list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">سلة الطلبات فارغة</div>`;
+        list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs font-semibold">سلة الطلبات فارغة</div>`;
         return;
       }
 
       list.innerHTML = '';
       cart.forEach((item, idx) => {
         const itemRow = document.createElement('div');
-        itemRow.className = 'flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs gap-2';
+        itemRow.className = 'flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs gap-2';
         
-        let subText = item.price > 0 ? `~ ${item.price * item.qty} ج` : 'حسب الفاتورة';
-        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'special_errand' ? '🛵' : '🛍️';
+        let subText = '';
+        let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'special_errand' ? '🛵' : (item.isWeighted ? '⚖️' : '🛍️');
+
+        if (item.isWeighted || item.weight) {
+          const lineTotal = Math.round((item.weight || 1) * item.price);
+          subText = `<span class="text-emerald-700 font-bold">الوزن: ${item.weight} كجم × ${item.price} ج = ~ ${lineTotal} ج</span>`;
+        } else {
+          subText = item.price > 0 ? `${item.qty} × <span class="text-emerald-700 font-bold">~ ${item.price * item.qty} ج</span>` : 'حسب الفاتورة';
+        }
 
         let catBreadcrumb = '';
         if (item.mainCat) {
@@ -2069,6 +2373,19 @@
         }
 
         let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة مرفقة</span>` : (item.image ? `<a href="${item.image}" target="_blank" class="text-emerald-700 font-bold text-[9px] underline block mt-0.5">🖼️ معاينة صورة المنتج</a>` : ''));
+
+        let notesIndicator = item.itemNotes ? `<span class="text-[10px] text-slate-600 block mt-0.5">📝 ملحوظة: ${item.itemNotes}</span>` : '';
+
+        let controlsHTML = '';
+        if (item.isWeighted || item.weight) {
+          controlsHTML = `
+            <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg p-0.5">
+              <button onclick="changeWeightQty('${item.id}', -0.5)" class="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[10px] flex items-center justify-center">-</button>
+              <button onclick="openWeightModal('${item.id}')" class="px-1 text-[10px] font-black text-emerald-800 hover:underline" title="تعديل الوزن">${item.weight} ك</button>
+              <button onclick="changeWeightQty('${item.id}', 0.5)" class="w-5 h-5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] flex items-center justify-center">+</button>
+            </div>
+          `;
+        }
 
         itemRow.innerHTML = `
           <div class="flex items-center gap-2 flex-1 pr-1 truncate">
@@ -2078,11 +2395,15 @@
                 <p class="font-bold text-slate-800 text-xs truncate">${item.name}</p>
                 ${catBreadcrumb}
               </div>
-              <p class="text-[10px] text-slate-400">${item.qty} × <span class="text-emerald-700 font-bold">${subText}</span></p>
+              <p class="text-[10px] text-slate-500 mt-0.5">${subText}</p>
+              ${notesIndicator}
               ${photoIndicator}
             </div>
           </div>
-          <button onclick="removeCartItem(${idx})" class="text-red-500 hover:text-red-700 font-bold text-xs p-1">✕</button>
+          <div class="flex items-center gap-2 shrink-0">
+            ${controlsHTML}
+            <button onclick="removeCartItem(${idx})" class="text-red-500 hover:text-red-700 font-bold text-xs p-1" title="حذف">✕</button>
+          </div>
         `;
         list.appendChild(itemRow);
       });
@@ -2097,7 +2418,12 @@
     function updateDeliveryFee() {
       const selectedLoc = document.querySelector('input[name="deliveryLocation"]:checked')?.value || 'inside';
       const fee = selectedLoc === 'inside' ? appConfig.feeInside : appConfig.feeOutside;
-      const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const approxSubtotal = cart.reduce((sum, item) => {
+        if (item.isWeighted || item.weight) {
+          return sum + Math.round((item.weight || 1) * item.price);
+        }
+        return sum + Math.round(item.price * item.qty);
+      }, 0);
 
       const subtotalEl = document.getElementById('summaryApproxSubtotal');
       const feeEl = document.getElementById('summaryDeliveryFee');
@@ -2143,7 +2469,12 @@
 
       const selectedLoc = document.querySelector('input[name="deliveryLocation"]:checked')?.value || 'inside';
       const fee = selectedLoc === 'inside' ? appConfig.feeInside : appConfig.feeOutside;
-      const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const approxSubtotal = cart.reduce((sum, item) => {
+        if (item.isWeighted || item.weight) {
+          return sum + Math.round((item.weight || 1) * item.price);
+        }
+        return sum + Math.round(item.price * item.qty);
+      }, 0);
       const grandTotal = approxSubtotal + fee;
 
       const isOnlinePay = document.querySelector('input[name="paymentMethod"]:checked')?.value === 'online';
@@ -2169,11 +2500,20 @@
 
       if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
       msg += `---------------------------------\n`;
-      msg += `📋 *قائمة الطلبات بالتفصيل والصور:*\n\n`;
+      msg += `📋 *قائمة الطلبات بالتفصيل والأوزان والصور:*\n\n`;
 
       cart.forEach((item, idx) => {
-        let priceTag = item.price > 0 ? `(~ ${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
-        msg += `*${idx + 1}. ${item.qty} × ${item.name}* ${priceTag}\n`;
+        if (item.isWeighted || item.weight) {
+          let lineTotal = Math.round((item.weight || 1) * item.price);
+          msg += `*${idx + 1}. ${item.name}* (~ ${lineTotal} ج)\n`;
+          msg += `   ⚖️ *الوزن المطلوب:* ${item.weight} كجم (سعر الكيلو: ${item.price} ج)\n`;
+          if (item.itemNotes) {
+            msg += `   📝 *ملاحظات المحل:* ${item.itemNotes}\n`;
+          }
+        } else {
+          let priceTag = item.price > 0 ? `(~ ${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
+          msg += `*${idx + 1}. ${item.qty} × ${item.name}* ${priceTag}\n`;
+        }
         
         if (item.mainCat) {
           let path = item.subCat && item.subCat !== 'عام' ? `${item.mainCat} > ${item.subCat}` : item.mainCat;
