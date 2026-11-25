@@ -47,7 +47,7 @@
     body {
       font-family: 'Cairo', sans-serif;
       -webkit-tap-highlight-color: transparent;
-      padding-bottom: 85px;
+      padding-bottom: 90px;
     }
     .hide-scrollbar::-webkit-scrollbar {
       display: none;
@@ -80,6 +80,7 @@
           <div class="flex items-center gap-1.5">
             <h1 class="font-black text-sm sm:text-base text-slate-900 leading-none">تسوق الغريزات</h1>
             <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-emerald-500" title="متصل"></span>
+            <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full">v8.0</span>
           </div>
           <p class="text-[10px] text-slate-400 font-semibold mt-0.5">خدمة دليفري ومشاوير القرية</p>
         </div>
@@ -110,10 +111,10 @@
 
   <main class="max-w-md mx-auto px-4 mt-2.5 space-y-3">
 
-    <!-- ==================== 10 MAIN NAVIGATION TABS ==================== -->
+    <!-- ==================== MAIN NAVIGATION TABS ==================== -->
     <nav class="bg-white p-1 rounded-2xl border border-slate-200/90 shadow-sm overflow-x-auto hide-scrollbar">
       <div id="dynamicMainTabsContainer" class="flex items-center gap-1 min-w-max text-center text-xs font-bold">
-        <!-- Rendered dynamically according to exact 10-department order -->
+        <!-- Rendered dynamically -->
       </div>
     </nav>
 
@@ -165,7 +166,7 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-3.5 overflow-y-auto space-y-3.5 flex-1 hide-scrollbar">
+      <div class="p-3.5 overflow-y-auto space-y-3 flex-1 hide-scrollbar">
         
         <div>
           <h4 class="text-xs font-bold text-slate-600 mb-1.5">الأصناف المختارة:</h4>
@@ -186,6 +187,33 @@
               <input type="radio" name="deliveryLocation" value="outside" onchange="updateDeliveryFee()" class="text-brand-600">
               <span>من المركز (30 ج)</span>
             </label>
+          </div>
+        </div>
+
+        <!-- PAYMENT METHOD SELECTION (CASH VS ONLINE) -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
+          <label class="block text-[11px] font-bold text-slate-700">طريقة الدفع المطلوبة:</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label id="labelPayCash" class="flex items-center gap-1.5 p-2 rounded-lg border border-emerald-400 bg-emerald-50 text-emerald-950 font-bold cursor-pointer transition">
+              <input type="radio" name="paymentMethod" value="cash" checked onchange="togglePaymentMethodUI()" class="text-brand-600">
+              <span>💵 كاش عند الاستلام</span>
+            </label>
+            <label id="labelPayOnline" class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer transition">
+              <input type="radio" name="paymentMethod" value="online" onchange="togglePaymentMethodUI()" class="text-brand-600">
+              <span>📱 إلكتروني (كاش / إنستا)</span>
+            </label>
+          </div>
+
+          <!-- Electronic Payment Instructions Box (Shown when online is picked) -->
+          <div id="onlinePaymentNoticeBox" class="hidden p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl space-y-2 text-xs text-blue-950">
+            <div class="flex items-center justify-between font-bold text-xs text-blue-900 border-b border-blue-200/60 pb-1.5">
+              <span>رقم فودافون كاش أو إنستاباي:</span>
+              <span class="font-black font-mono text-sm bg-white text-blue-700 px-2 py-0.5 rounded-lg border border-blue-300 select-all" dir="ltr">01060803100</span>
+            </div>
+            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-300/80 text-amber-950 leading-relaxed font-semibold text-[11px]">
+              ⚠️ <strong>تنبيه هام للعميل:</strong><br>
+              يرجى العلم أن التحويل يتم <strong class="text-red-700 underline">بعد تأكيد توفر كافة طلباتك</strong> والتأكد من سعر الفاتورة النهائي الرسمي الصادر من المحل مع المندوب.
+            </div>
           </div>
         </div>
 
@@ -249,6 +277,26 @@
   <!-- JAVASCRIPT APPLICATION LOGIC -->
   <script>
     // ==========================================
+    // 0. SAFE STORAGE HELPERS (NEVER CRASH ON FILE:///)
+    // ==========================================
+    function safeGetStorage(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.warn('Storage read blocked:', e);
+        return null;
+      }
+    }
+
+    function safeSetStorage(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {
+        console.warn('Storage write blocked:', e);
+      }
+    }
+
+    // ==========================================
     // 1. EXACT CONFIGURATION & ORDERED DEPARTMENTS
     // ==========================================
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0w3R7dVbpK46GOPzFJAfrrtVr-kvEADQg9MVW93rykgTzwTMArg9gDcQWnX4y7Opz_CM4nK8xrxZV/pub?gid=1317727240&single=true&output=csv';
@@ -264,11 +312,12 @@
 
     let appConfig = DEFAULT_CONFIG;
 
-    // THE 10 MAIN DEPARTMENTS IN EXACT USER-REQUESTED ORDER
+    // THE 11 MAIN DEPARTMENTS (IN EXACT SEQUENCE)
     const MAIN_TABS_ORDER = [
       'الماركت',
       'المطاعم',
-      'الخضار',
+      'الخضار والفاكهة',
+      'اللحوم والطيور والأسماك الطازجة',
       'الصيدلية',
       'المكتبة',
       'فودافون كاش',
@@ -281,7 +330,8 @@
     const MAIN_TABS_METADATA = {
       'الماركت': { emoji: '🛒', shortName: 'الماركت' },
       'المطاعم': { emoji: '🍔', shortName: 'المطاعم' },
-      'الخضار': { emoji: '🥦', shortName: 'الخضار' },
+      'الخضار والفاكهة': { emoji: '🍏', shortName: 'الخضار والفاكهة' },
+      'اللحوم والطيور والأسماك الطازجة': { emoji: '🥩', shortName: 'لحوم وطيور وأسماك' },
       'الصيدلية': { emoji: '💊', shortName: 'الصيدلية' },
       'المكتبة': { emoji: '📚', shortName: 'المكتبة' },
       'فودافون كاش': { emoji: '💳', shortName: 'فودافون كاش' },
@@ -305,7 +355,7 @@
     let vehicleTimeChoice = 'now';
 
     // ==========================================
-    // 2. COMPLETE PRE-POPULATED DEPARTMENTS (FAILSAFE)
+    // 2. COMPLETE PRE-POPULATED DEPARTMENTS
     // ==========================================
     const DEFAULT_DEPARTMENTS = {
       'الماركت': {
@@ -313,21 +363,21 @@
         emoji: '🛒',
         subCategories: ['الألبان', 'المجمدات', 'البقوليات والعطاره', 'التسالي', 'المنظفات', 'بقالة وأساسيات أخرى'],
         items: [
-          { id: 'm_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1552767059-ce182ead6c1b?w=400' },
-          { id: 'm_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1452195100486-9cc805987862?w=400' },
-          { id: 'm_3', name: 'طبق بيض أحمر مزارع (30 بيضة)', price: 160, subCat: 'الألبان', icon: '🥚', image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400' },
-          { id: 'm_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'الألبان', icon: '🥛', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400' },
+          { id: 'm_1', name: 'جبنة دومتي بلس نصف كيلو', price: 35, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1559561853-08451507cbe7?w=400' },
+          { id: 'm_2', name: 'جبنة رومي قديمة فاخرة ربع كيلو', price: 75, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400' },
+          { id: 'm_3', name: 'طبق بيض أحمر مزارع (30 بيضة)', price: 160, subCat: 'الألبان', icon: '🥚', image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400' },
+          { id: 'm_4', name: 'حليب معبأ كامل الدسم 1 لتر', price: 42, subCat: 'الألبان', icon: '🥛', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400' },
           { id: 'm_5', name: 'زبادي بلدي طازج يومياً', price: 7, subCat: 'الألبان', icon: '🥣', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400' },
-          { id: 'm_6', name: 'جبنة قريش فلاحي طازجة 1 ك', price: 80, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1589881133595-a3c085cb731d?w=400' },
+          { id: 'm_6', name: 'جبنة قريش فلاحي طازجة 1 ك', price: 80, subCat: 'الألبان', icon: '🧀', image: 'https://images.unsplash.com/photo-1528750997573-59b89d56f4f7?w=400' },
           { id: 'm_7', name: 'سمنة بلدي فلاحي بقري 1 ك', price: 220, subCat: 'الألبان', icon: '🧈', image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400' },
           { id: 'm_8', name: 'برجر لحم فاخر 8 قطع', price: 65, subCat: 'المجمدات', icon: '🥩', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
           { id: 'm_9', name: 'بانيه دجاج مقرمش 400 جم', price: 75, subCat: 'المجمدات', icon: '🍗', image: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400' },
           { id: 'm_10', name: 'سجق بلدي شرقي مجمد متبل', price: 70, subCat: 'المجمدات', icon: '🌭', image: 'https://images.unsplash.com/photo-1585325701165-351af916e581?w=400' },
           { id: 'm_11', name: 'استربس دجاج مقرمش حار سبايسي', price: 80, subCat: 'المجمدات', icon: '🍗', image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400' },
-          { id: 'm_12', name: 'بطاطس فارم فريتس مقلية 1 ك', price: 45, subCat: 'المجمدات', icon: '🍟', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400' },
+          { id: 'm_12', name: 'بطاطس فارم فريتس مقلية 1 ك', price: 45, subCat: 'المجمدات', icon: '🍟', image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=400' },
           { id: 'm_13', name: 'أرز مصري بلدي فاخر 1 ك', price: 32, subCat: 'البقوليات والعطاره', icon: '🌾', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
           { id: 'm_14', name: 'مكرونة الملكة 400 جم متنوعة', price: 15, subCat: 'البقوليات والعطاره', icon: '🍝', image: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=400' },
-          { id: 'm_15', name: 'فول تدميس بلدي مكمور 1 ك', price: 45, subCat: 'البقوليات والعطاره', icon: '🍲', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+          { id: 'm_15', name: 'فول تدميس بلدي مكمور 1 ك', price: 45, subCat: 'البقوليات والعطاره', icon: '🍲', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' },
           { id: 'm_16', name: 'عدس أصفر بلدي منقى نصف ك', price: 30, subCat: 'البقوليات والعطاره', icon: '🥣', image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=400' },
           { id: 'm_17', name: 'فلفل أسود وكمون وبهارات طازجة', price: 25, subCat: 'البقوليات والعطاره', icon: '🌿', image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400' },
           { id: 'm_18', name: 'شيبسي عائلي طعوم متنوعة', price: 15, subCat: 'التسالي', icon: '🥔', image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400' },
@@ -336,7 +386,7 @@
           { id: 'm_21', name: 'كانز شويبس رمان أو خوخ', price: 15, subCat: 'التسالي', icon: '🍹', image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400' },
           { id: 'm_22', name: 'لب سوبر ومكسرات مقلة ربع ك', price: 40, subCat: 'التسالي', icon: '🥜', image: 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?w=400' },
           { id: 'm_23', name: 'شوكولاتة كادبوري أو جالاكسي', price: 25, subCat: 'التسالي', icon: '🍫', image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400' },
-          { id: 'm_24', name: 'مسحوق غسيل أوتوماتيك أريال 1 ك', price: 65, subCat: 'المنظفات', icon: '🧼', image: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400' },
+          { id: 'm_24', name: 'مسحوق غسيل أوتوماتيك أريال 1 ك', price: 65, subCat: 'المنظفات', icon: '🧼', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400' },
           { id: 'm_25', name: 'صابون مواعين سائل بريل وفيري', price: 32, subCat: 'المنظفات', icon: '🧴', image: 'https://images.unsplash.com/photo-1585832770485-e68a5dbfad52?w=400' },
           { id: 'm_26', name: 'كلور أبيض معقم كلوركس 1 لتر', price: 18, subCat: 'المنظفات', icon: '🧽', image: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=400' },
           { id: 'm_27', name: 'معطر ملابس داوني وفريدة 1 لتر', price: 45, subCat: 'المنظفات', icon: '🌸', image: 'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=400' },
@@ -352,8 +402,18 @@
       'المطاعم': {
         name: 'المطاعم',
         emoji: '🍔',
-        subCategories: ['الفيومي للفطائر والبيتزا', 'الكشري والطواجن', 'المشويات'],
+        subCategories: ['شعبيات (فول وطعمية وبطاطس)', 'الفيومي للفطائر والبيتزا', 'الكشري والطواجن', 'المشويات'],
         items: [
+          { id: 'r_sh1', name: 'ساندوتش فول بلدي بالزيت الحار والليمون', price: 8, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🥪', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' },
+          { id: 'r_sh2', name: 'ساندوتش طعمية سخنة مقرمشة بالسلطة والسمسم', price: 8, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🥙', image: 'https://images.unsplash.com/photo-1593001874117-c99c800e3eb7?w=400' },
+          { id: 'r_sh3', name: 'ساندوتش بطاطس صوابع مقلية بالمايونيز والكاتشب', price: 12, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🍟', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400' },
+          { id: 'r_sh4', name: 'ساندوتش بطاطس مهروسة بالبيض والزبدة', price: 12, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🥔', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400' },
+          { id: 'r_sh5', name: 'ساندوتش مكس شعبي سوبر (فول وطعمية وبطاطس)', price: 14, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🌯', image: 'https://images.unsplash.com/photo-1593001874117-c99c800e3eb7?w=400' },
+          { id: 'r_sh6', name: 'علبة فول سادة مدمس زبدة عائلية', price: 15, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🍲', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' },
+          { id: 'r_sh7', name: 'قرص طعمية محشية بالبصل والشطة والصلصة', price: 5, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🧆', image: 'https://images.unsplash.com/photo-1593001874117-c99c800e3eb7?w=400' },
+          { id: 'r_sh8', name: 'طبق مسقعة بالباذنجان الرومي والفلفل', price: 20, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🥘', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+          { id: 'r_sh9', name: 'علبة باذنجان مخلل بالدقة والتوم والخل', price: 15, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🍆', image: 'https://images.unsplash.com/photo-1628773822503-930a84d9f67a?w=400' },
+          { id: 'r_sh10', name: 'طبق سلطة بلدي خضراء وطحينة بالليمون', price: 10, subCat: 'شعبيات (فول وطعمية وبطاطس)', icon: '🥗', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400' },
           { id: 'r_1', name: 'فطيرة مشلتت فلاحي سادة بالسمن', price: 80, subCat: 'الفيومي للفطائر والبيتزا', icon: '🥞', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400', notes: 'طازجة وسخنة من الفرن' },
           { id: 'r_2', name: 'فطيرة حادقة مكس جبن كيري ورومي', price: 100, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400' },
           { id: 'r_3', name: 'فطيرة سجق إسكندراني كيرل', price: 120, subCat: 'الفيومي للفطائر والبيتزا', icon: '🍕', image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=400' },
@@ -371,10 +431,10 @@
           { id: 'r_15', name: 'وجبة ميكس جريل مشويات مشكلة', price: 150, subCat: 'المشويات', icon: '🥩', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' }
         ]
       },
-      'الخضار': {
-        name: 'الخضار',
-        emoji: '🥦',
-        subCategories: ['خضروات أساسية'],
+      'الخضار والفاكهة': {
+        name: 'الخضار والفاكهة',
+        emoji: '🍏',
+        subCategories: ['خضروات أساسية', 'الفواكه'],
         items: [
           { id: 'v_1', name: 'طماطم بلدي طازجة 1 ك', price: 20, subCat: 'خضروات أساسية', icon: '🍅', image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400' },
           { id: 'v_2', name: 'بطاطس تحمير فاخرة رملية 1 ك', price: 25, subCat: 'خضروات أساسية', icon: '🥔', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400' },
@@ -386,7 +446,43 @@
           { id: 'v_8', name: 'كوسة بلدي طازجة للمحشي 1 ك', price: 20, subCat: 'خضروات أساسية', icon: '🥒', image: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?w=400' },
           { id: 'v_9', name: 'جزر أصفر سكري بلدي 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🥕', image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400' },
           { id: 'v_10', name: 'ملوخية خضراء فلاحي طازجة 1 ك', price: 15, subCat: 'خضروات أساسية', icon: '🥬', image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400' },
-          { id: 'v_11', name: 'كرنب بلدي صعيدي للمحشي', price: 25, subCat: 'خضروات أساسية', icon: '🥬', image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=400' }
+          { id: 'v_11', name: 'كرنب بلدي صعيدي للمحشي', price: 25, subCat: 'خضروات أساسية', icon: '🥬', image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=400' },
+          { id: 'fr_1', name: 'موز بلدي فاخر سكري للأكل 1 ك', price: 25, subCat: 'الفواكه', icon: '🍌', image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400' },
+          { id: 'fr_2', name: 'تفاح أحمر إيطالي سكري مقرمش 1 ك', price: 55, subCat: 'الفواكه', icon: '🍎', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400' },
+          { id: 'fr_3', name: 'برتقال بلدي عصير طازج مليان مياه 1 ك', price: 15, subCat: 'الفواكه', icon: '🍊', image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=400' },
+          { id: 'fr_4', name: 'برتقال أبو سرة سكري حلو للأكل 1 ك', price: 18, subCat: 'الفواكه', icon: '🍊', image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=400' },
+          { id: 'fr_5', name: 'يوسفي بلدي فلاحي مسكر 1 ك', price: 15, subCat: 'الفواكه', icon: '🍊', image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?w=400' },
+          { id: 'fr_6', name: 'فراولة بلدي فريش حمراء طازجة 1 ك', price: 35, subCat: 'الفواكه', icon: '🍓', image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400' },
+          { id: 'fr_7', name: 'جوافة بناتي سكري بريحة فواحة 1 ك', price: 25, subCat: 'الفواكه', icon: '🍈', image: 'https://images.unsplash.com/photo-1536511136869-7988894df66a?w=400' },
+          { id: 'fr_8', name: 'رمان صعيدي منفلوطي حب أحمر مسكر 1 ك', price: 25, subCat: 'الفواكه', icon: '🍇', image: 'https://images.unsplash.com/photo-1541344999736-83eca872f240?w=400' },
+          { id: 'fr_9', name: 'عنب بناتي أحمر وأبيض سكري 1 ك', price: 40, subCat: 'الفواكه', icon: '🍇', image: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400' },
+          { id: 'fr_10', name: 'كانتالوب وشمام بلدي سكري عسل 1 ك', price: 20, subCat: 'الفواكه', icon: '🍈', image: 'https://images.unsplash.com/photo-1571575173700-afb9492e6a7b?w=400' }
+        ]
+      },
+      'اللحوم والطيور والأسماك الطازجة': {
+        name: 'اللحوم والطيور والأسماك الطازجة',
+        emoji: '🥩',
+        subCategories: ['لحمة طازجة', 'فراخ بيضاء وطيور', 'أسماك طازجة'],
+        items: [
+          { id: 'meat_1', name: 'كيلو لحم بلدي عجالي أحمر صافي (كندوز)', price: 380, subCat: 'لحمة طازجة', icon: '🥩', image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400' },
+          { id: 'meat_2', name: 'كيلو لحم بلدي بتلو طري بالعظم', price: 350, subCat: 'لحمة طازجة', icon: '🥩', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+          { id: 'meat_3', name: 'كيلو لحم مفروم بلدي طازج وشين', price: 360, subCat: 'لحمة طازجة', icon: '🥩', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400' },
+          { id: 'meat_4', name: 'كيلو كبدة بلدي طازجة كندوز مع كلاوي', price: 400, subCat: 'لحمة طازجة', icon: '🥩', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+          { id: 'meat_5', name: 'كيلو سجق بلدي طازج محشي مخصوص', price: 320, subCat: 'لحمة طازجة', icon: '🌭', image: 'https://images.unsplash.com/photo-1585325701165-351af916e581?w=400' },
+          { id: 'meat_6', name: 'كوارع بلدي طازجة منظفة جاهزة للطهي', price: 220, subCat: 'لحمة طازجة', icon: '🍲', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+          { id: 'poultry_1', name: 'فرخة بيضاء حية مذبوحة ومنظفة طازجة (كيلو)', price: 95, subCat: 'فراخ بيضاء وطيور', icon: '🍗', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400' },
+          { id: 'poultry_2', name: 'كيلو بانيه دجاج طازج مقطع شرائح سادة', price: 210, subCat: 'فراخ بيضاء وطيور', icon: '🍗', image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400' },
+          { id: 'poultry_3', name: 'كيلو وراك دجاج مخلية أو بالعظم طازجة', price: 110, subCat: 'فراخ بيضاء وطيور', icon: '🍗', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400' },
+          { id: 'poultry_4', name: 'كيلو أجنحة دجاج طازجة للتحمير والصواني', price: 65, subCat: 'فراخ بيضاء وطيور', icon: '🍗', image: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400' },
+          { id: 'poultry_5', name: 'كيلو كبد وقوانص دجاج طازجة منظفة', price: 100, subCat: 'فراخ بيضاء وطيور', icon: '🥘', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400' },
+          { id: 'poultry_6', name: 'جوز حمام بلدي دكر ونتاية مذبوح ومنظف', price: 160, subCat: 'فراخ بيضاء وطيور', icon: '🕊️', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400' },
+          { id: 'poultry_7', name: 'بط بلدي فلاحي طازج مذبوح ومنظف (كيلو)', price: 130, subCat: 'فراخ بيضاء وطيور', icon: '🦆', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400' },
+          { id: 'fish_1', name: 'كيلو سمك بلطي نيلي طازج مقاس كبير سوبر', price: 85, subCat: 'أسماك طازجة', icon: '🐟', image: 'https://images.unsplash.com/photo-1534948216015-843149f72be3?w=400' },
+          { id: 'fish_2', name: 'كيلو سمك بوري طازج ممتاز سنجاري وشوي', price: 140, subCat: 'أسماك طازجة', icon: '🐟', image: 'https://images.unsplash.com/photo-1534948216015-843149f72be3?w=400' },
+          { id: 'fish_3', name: 'كيلو سمك ماكريل أصلي للشوي بالردة والزيت', price: 110, subCat: 'أسماك طازجة', icon: '🐟', image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400' },
+          { id: 'fish_4', name: 'كيلو جمبري بلدي مقاس وسط طازج', price: 280, subCat: 'أسماك طازجة', icon: '🦐', image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400' },
+          { id: 'fish_5', name: 'كيلو سمك فيليه قشر بياض أبيض صافي', price: 190, subCat: 'أسماك طازجة', icon: '🐠', image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400' },
+          { id: 'fish_6', name: 'خدمة تنظيف وقلي أو شوي السمك (للكيلو)', price: 15, subCat: 'أسماك طازجة', icon: '🔥', image: 'https://images.unsplash.com/photo-1534948216015-843149f72be3?w=400' }
         ]
       },
       'الصيدلية': {
@@ -394,13 +490,13 @@
         emoji: '💊',
         subCategories: ['اطلب ما تحتاج'],
         items: [
-          { id: 'p_1', name: 'صيدلية عبدالكريم بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
-          { id: 'p_2', name: 'صيدلية أحمد عبدالعليم بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
-          { id: 'p_3', name: 'صيدلية هبة بالقرية', price: 0, subCat: 'اطلب ما تحتاج', icon: '🏥', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
-          { id: 'p_4', name: 'شريط بنادول أزرق مسكن', price: 25, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
-          { id: 'p_5', name: 'شريط بروفين 400 مسكن ومضاد التهاب', price: 20, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
-          { id: 'p_6', name: 'فوار فواكه أو راني للحموضة', price: 15, subCat: 'اطلب ما تحتاج', icon: '🧪', image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=400' },
-          { id: 'p_7', name: 'حقيبة إسعافات أولية وشاش وبلاستر', price: 35, subCat: 'اطلب ما تحتاج', icon: '🩹', image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=400' }
+          { id: 'p_1', name: 'شريط بنادول أزرق مسكن وخافض حرارة', price: 25, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_2', name: 'شريط بروفين 400 مسكن ومضاد التهاب', price: 20, subCat: 'اطلب ما تحتاج', icon: '💊', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_3', name: 'فوار فواكه أو راني لعلاج الحموضة', price: 15, subCat: 'اطلب ما تحتاج', icon: '🧪', image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=400' },
+          { id: 'p_4', name: 'حقيبة إسعافات أولية وشاش وبلاستر وبيتادين', price: 35, subCat: 'اطلب ما تحتاج', icon: '🩹', image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=400' },
+          { id: 'p_5', name: 'ترمومتر ديجيتال دقيق لقياس الحرارة', price: 65, subCat: 'اطلب ما تحتاج', icon: '🌡️', image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400' },
+          { id: 'p_6', name: 'بخاخ أوتريفين للأنف واحتقان الجيوب الأنفية', price: 25, subCat: 'اطلب ما تحتاج', icon: '🧴', image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400' },
+          { id: 'p_7', name: 'حفاضات أطفال بامبرز مقاس وسط باكت', price: 180, subCat: 'اطلب ما تحتاج', icon: '👶', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400' }
         ]
       },
       'المكتبة': {
@@ -510,38 +606,52 @@
     // ==========================================
     // 3. INITIALIZATION & LIVE CSV SYNC
     // ==========================================
-    window.addEventListener('DOMContentLoaded', () => {
-      // 1. Load cached departments if available
-      const cached = localStorage.getItem('wasaly_dynamic_departments_v5');
+    function initApp() {
+      // 1. Safe Cache Reading
+      const cached = safeGetStorage('wasaly_dynamic_departments_v8');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          if (Object.keys(parsed).length > 0) {
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
             catalogDepartments = parsed;
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Cache read error:', e);
+        }
       }
 
       // 2. Render IMMEDIATELY
-      renderDynamicMainTabs();
-      updateCartUI();
+      try {
+        renderDynamicMainTabs();
+        updateCartUI();
+      } catch (renderErr) {
+        console.error('Initial render error:', renderErr);
+      }
 
       // 3. Sync live data from Google Sheets in background
       syncWithGoogleSheets(false);
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
 
     function getDepartmentEmoji(name) {
+      if (!name) return '🛍️';
       if (MAIN_TABS_METADATA[name]) return MAIN_TABS_METADATA[name].emoji;
       const text = name.toLowerCase();
-      if (text.includes('ماركت') || text.includes('بقال') || text.includes('سوبر')) return '🛒';
-      if (text.includes('مطعم') || text.includes('أكل') || text.includes('كشري')) return '🍔';
-      if (text.includes('خضار') || text.includes('فاكه')) return '🥦';
-      if (text.includes('صيدل') || text.includes('دواء')) return '💊';
-      if (text.includes('مكتب') || text.includes('ورق')) return '📚';
-      if (text.includes('كاش') || text.includes('فودافون')) return '💳';
+      if (text.includes('لحم') || text.includes('طيور') || text.includes('فراخ') || text.includes('سمك') || text.includes('أسماك')) return '🥩';
+      if (text.includes('ماركت') || text.includes('بقال') || text.includes('سوبر') || text.includes('ألبان')) return '🛒';
+      if (text.includes('مطعم') || text.includes('أكل') || text.includes('كشري') || text.includes('فول') || text.includes('مشويات')) return '🍔';
+      if (text.includes('خضار') || text.includes('فاكه')) return '🍏';
+      if (text.includes('صيدل') || text.includes('دواء') || text.includes('علاج')) return '💊';
+      if (text.includes('مكتب') || text.includes('ورق') || text.includes('طباعة')) return '📚';
+      if (text.includes('كاش') || text.includes('فودافون') || text.includes('فاتورة')) return '💳';
       if (text.includes('هد')) return '🎁';
-      if (text.includes('خردوات')) return '🧸';
-      if (text.includes('توصيل') || text.includes('مشوار')) return '🛵';
+      if (text.includes('خردوات') || text.includes('أدوات منزل')) return '🧸';
+      if (text.includes('توصيل') || text.includes('مشوار') || text.includes('مواصل')) return '🛵';
       return '🛍️';
     }
 
@@ -564,9 +674,9 @@
           if (isManual) alert('تم تحديث جميع الأقسام والمنتجات بنجاح من الإكسل! ✅');
         }
       } catch (err) {
-        console.warn('Sync issue, using local cache:', err);
-        if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        if (isManual) alert('تعذر الاتصال بـ Google Sheets، تم الاعتماد على البيانات المحفوظة.');
+        console.warn('Sync notice: using built-in or cached data (Sheet sync offline/CORS):', err);
+        if (syncDot) syncDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        if (isManual) alert('تعذر الاتصال المباشر بـ Google Sheets، تم الاعتماد على البيانات المحدثة المحفوظة.');
       } finally {
         if (syncIcon) syncIcon.classList.remove('animate-spin-slow');
       }
@@ -603,29 +713,28 @@
     }
 
     function normalizeMainCategoryName(raw) {
-      const trimmed = raw.trim();
+      const trimmed = (raw || '').trim();
       for (const canonical of MAIN_TABS_ORDER) {
         if (trimmed === canonical || trimmed.includes(canonical)) {
           return canonical;
         }
       }
+      if (trimmed.includes('لحم') || trimmed.includes('طيور') || trimmed.includes('فراخ') || trimmed.includes('سمك') || trimmed.includes('أسماك')) return 'اللحوم والطيور والأسماك الطازجة';
       if (trimmed.includes('ماركت')) return 'الماركت';
       if (trimmed.includes('مطعم') || trimmed.includes('مطاعم')) return 'المطاعم';
-      if (trimmed.includes('خضار')) return 'الخضار';
+      if (trimmed.includes('خضار') || trimmed.includes('فاكه')) return 'الخضار والفاكهة';
       if (trimmed.includes('صيدل')) return 'الصيدلية';
       if (trimmed.includes('مكتب')) return 'المكتبة';
       if (trimmed.includes('كاش') || trimmed.includes('فودافون')) return 'فودافون كاش';
       if (trimmed.includes('هد')) return 'الهدايا';
       if (trimmed.includes('خردوات')) return 'الخردوات';
       if (trimmed.includes('توصيل') || trimmed.includes('مشوار')) return 'التوصيل';
-      if (trimmed.includes('غير متوفر') || trimmed.includes('خاص')) return 'طلب منتج أو خدمة غير متوفرة';
+      if (trimmed.includes('غير متوفر') || trimmed.includes('خاص') || trimmed.includes('مخصص')) return 'طلب منتج أو خدمة غير متوفرة';
       return trimmed;
     }
 
     function processAllSheetRowsDynamically(rows) {
-      // Clone base departments so structure is guaranteed
       const newDepartments = JSON.parse(JSON.stringify(DEFAULT_DEPARTMENTS));
-      // Reset items in order to take live rows from sheet
       for (const k in newDepartments) {
         newDepartments[k].subCategories = new Set(newDepartments[k].subCategories || []);
         newDepartments[k].items = [];
@@ -689,18 +798,18 @@
       }
 
       catalogDepartments = newDepartments;
-      localStorage.setItem('wasaly_dynamic_departments_v5', JSON.stringify(catalogDepartments));
+      safeSetStorage('wasaly_dynamic_departments_v8', JSON.stringify(catalogDepartments));
       renderDynamicMainTabs();
     }
 
     // ==========================================
-    // 4. RENDER MAIN NAVIGATION TABS (EXACT 1-10 SEQUENCE)
+    // 4. RENDER MAIN NAVIGATION TABS
     // ==========================================
     function renderDynamicMainTabs() {
       const container = document.getElementById('dynamicMainTabsContainer');
+      if (!container) return;
       container.innerHTML = '';
 
-      // Merge predefined order with any new extra custom categories added in Sheet
       const existingKeys = Object.keys(catalogDepartments);
       const allTabs = [...MAIN_TABS_ORDER];
       existingKeys.forEach(k => {
@@ -736,15 +845,69 @@
     }
 
     // ==========================================
-    // 5. RENDER ACTIVE TAB CONTENT
+    // 5. PROMINENT QUICK-REQUEST BOX
+    // ==========================================
+    function renderProminentQuickRequestBox(container, deptName) {
+      const card = document.createElement('div');
+      card.className = 'bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl p-3.5 border-2 border-emerald-300 shadow-md space-y-2';
+      
+      const safeId = 'quickInput_' + deptName.replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '_');
+      
+      card.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shadow-sm">
+            🔍
+          </div>
+          <div>
+            <h4 class="font-black text-xs sm:text-sm text-emerald-950">صنف مش لاقيه في ${deptName}؟ اكتبه هنا</h4>
+            <p class="text-[10px] text-emerald-700 font-semibold">اكتب أي طلب أو صنف مش موجود وهنجيبهولك فوراً</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pt-0.5">
+          <input type="text" id="${safeId}" placeholder="اكتب اسم الصنف أو الوجبة أو تفاصيل طلبك هنا..." class="flex-1 text-xs px-3 py-2.5 bg-white border border-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-800 shadow-inner">
+          <button onclick="addQuickItemToCartByInputId('${safeId}', '${deptName}')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md transition shrink-0 flex items-center gap-1.5">
+            <span>أضف للطلب</span>
+            <span class="text-sm leading-none">+</span>
+          </button>
+        </div>
+      `;
+      container.appendChild(card);
+    }
+
+    function addQuickItemToCartByInputId(inputId, deptName) {
+      const input = document.getElementById(inputId);
+      const text = input ? input.value.trim() : '';
+      if (!text) {
+        alert('اكتب اسم الطلب أولاً');
+        return;
+      }
+
+      cart.push({
+        id: 'quick_' + Date.now(),
+        type: 'custom',
+        name: `[${deptName}] ${text}`,
+        price: 0,
+        qty: 1,
+        mainCat: deptName,
+        subCat: 'طلب خاص بالقسم',
+        image: ''
+      });
+
+      if (input) input.value = '';
+      updateCartUI();
+      openCartModal();
+    }
+
+    // ==========================================
+    // 6. RENDER ACTIVE TAB CONTENT
     // ==========================================
     function renderActiveTabContent() {
       const container = document.getElementById('dynamicContentContainer');
+      if (!container) return;
       container.innerHTML = '';
 
       const currentDept = catalogDepartments[activeMainTab] || { name: activeMainTab, items: [], subCategories: [] };
 
-      // Switch according to department type/name
       if (activeMainTab === 'التوصيل') {
         renderDeliveryAndVehiclesSection(container, currentDept);
       } else if (activeMainTab === 'فودافون كاش') {
@@ -767,7 +930,8 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
 
-      // Sub-tabs: مشاوير خاصة vs مشاوير دائمة أو مدرسية
+      renderProminentQuickRequestBox(wrapper, 'التوصيل والمشاوير');
+
       const subBar = document.createElement('div');
       subBar.className = 'flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold';
 
@@ -783,7 +947,6 @@
       wrapper.appendChild(subBar);
 
       if (isSpecial) {
-        // SPECIAL RIDES & VEHICLE FLEET
         const fleetBox = document.createElement('div');
         fleetBox.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4';
 
@@ -864,7 +1027,6 @@
         `;
         wrapper.appendChild(fleetBox);
       } else {
-        // PERMANENT / SCHOOL COMMUTE
         const schoolBox = document.createElement('div');
         schoolBox.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
         schoolBox.innerHTML = `
@@ -995,7 +1157,10 @@
         type: 'special_errand',
         name: `مشوار [${activeVehObj.name}]: من (${fromLoc || 'الغريزات'}) إلى (${toLoc || 'المركز'}) ${details ? `- ${details}` : ''}`,
         price: 0,
-        qty: 1
+        qty: 1,
+        mainCat: 'التوصيل',
+        subCat: 'مشاوير خاصة',
+        image: ''
       });
 
       updateCartUI();
@@ -1042,6 +1207,8 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
 
+      renderProminentQuickRequestBox(wrapper, 'فودافون كاش والخدمات المالية');
+
       const subBar = document.createElement('div');
       subBar.className = 'flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold';
 
@@ -1057,7 +1224,6 @@
       wrapper.appendChild(subBar);
 
       if (isCash) {
-        // NEED CASH SERVICE
         const cashCard = document.createElement('div');
         cashCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
         cashCard.innerHTML = `
@@ -1096,7 +1262,13 @@
             </div>
 
             <input type="text" id="cashTargetPhone" placeholder="رقم المحفظة المراد التحويل منها أو إليها (اختياري)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
-            <input type="text" id="cashAddress" placeholder="عنوانك في الغريزات لتوصيل الكاش *" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            
+            <input type="text" id="cashAddress" placeholder="العنوان بالتفصيل داخل الغريزات (الشارع أو علامة مميزة) *" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            
+            <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition">
+              <span>📍</span>
+              <span id="cashGpsBtnText">تحديد موقعي الحالي على الخريطة (GPS)</span>
+            </button>
           </div>
 
           <button onclick="dispatchCashServiceViaWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow-md transition">
@@ -1105,7 +1277,6 @@
         `;
         wrapper.appendChild(cashCard);
       } else {
-        // BILL & INSTALLMENT PAYMENT SERVICE
         const billCard = document.createElement('div');
         billCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
         billCard.innerHTML = `
@@ -1142,6 +1313,13 @@
               <input type="text" id="billCustName" placeholder="اسم صاحب الفاتورة *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
               <input type="tel" id="billCustPhone" placeholder="رقم الهاتف لاستلام الإيصال *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
             </div>
+
+            <input type="text" id="billAddress" placeholder="العنوان بالتفصيل داخل القرية *" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+
+            <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition">
+              <span>📍</span>
+              <span id="billGpsBtnText">تحديد موقعي الحالي على الخريطة (GPS)</span>
+            </button>
 
             <textarea id="billNotes" rows="1.5" placeholder="ملاحظات إضافية (اختياري)..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
           </div>
@@ -1182,6 +1360,7 @@
       msg += `📞 *الهاتف:* ${phone}\n`;
       msg += `🏠 *العنوان للتسليم:* ${address}\n`;
       if (targetPhone) msg += `📲 *رقم المحفظة / الحساب:* ${targetPhone}\n`;
+      if (userGPSLocationUrl) msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
       msg += `---------------------------------\n`;
       msg += `⚡ _يصلك المندوب لحد البيت لتنفيذ المعاملة فوراً._`;
 
@@ -1196,10 +1375,11 @@
       const amount = document.getElementById('billAmount')?.value.trim();
       const name = document.getElementById('billCustName')?.value.trim();
       const phone = document.getElementById('billCustPhone')?.value.trim();
+      const address = document.getElementById('billAddress')?.value.trim();
       const notes = document.getElementById('billNotes')?.value.trim();
 
-      if (!code || !amount || !name || !phone) {
-        alert('من فضلك أكمل البيانات: كود السداد/رقم العداد، المبلغ، الاسم، ورقم الهاتف.');
+      if (!code || !amount || !name || !phone || !address) {
+        alert('من فضلك أكمل البيانات: كود السداد/رقم العداد، المبلغ، الاسم، رقم الهاتف، والعنوان.');
         return;
       }
 
@@ -1210,7 +1390,9 @@
       msg += `💰 *قيمة المبلغ:* ${amount} جنيه\n`;
       msg += `👤 *صاحب الفاتورة:* ${name}\n`;
       msg += `📞 *رقم الهاتف:* ${phone}\n`;
+      msg += `🏠 *العنوان:* ${address}\n`;
       if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
+      if (userGPSLocationUrl) msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
       msg += `---------------------------------\n`;
       msg += `✅ _يتم السداد فوراً وإرسال صورة إيصال الدفع المعتمد في الشات._`;
 
@@ -1220,11 +1402,13 @@
     }
 
     // ========================================================
-    // C. SECTION: PHARMACY (الصيدلية - اطلب ما تحتاج)
+    // C. SECTION: PHARMACY (الصيدلية)
     // ========================================================
     function renderPharmacySection(container, currentDept) {
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
+
+      renderProminentQuickRequestBox(wrapper, 'الصيدلية والأدوية');
 
       const pharmCard = document.createElement('div');
       pharmCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
@@ -1237,41 +1421,19 @@
           </div>
         </div>
 
-        <div class="space-y-2 text-xs">
+        <div class="space-y-2.5 text-xs">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">اختر الصيدلية المفضلة بالقرية:</label>
-            <div class="grid grid-cols-2 gap-2">
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
-                <input type="radio" name="pharmChoice" value="صيدلية عبدالكريم" checked class="text-blue-600">
-                <span>صيدلية عبدالكريم</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
-                <input type="radio" name="pharmChoice" value="صيدلية أحمد عبدالعليم" class="text-blue-600">
-                <span>صيدلية أحمد عبدالعليم</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-blue-200 bg-blue-50/50 font-bold text-blue-900 cursor-pointer">
-                <input type="radio" name="pharmChoice" value="صيدلية هبة" class="text-blue-600">
-                <span>صيدلية هبة</span>
-              </label>
-              <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 cursor-pointer">
-                <input type="radio" name="pharmChoice" value="أقرب صيدلية متوفر بها العلاج" class="text-blue-600">
-                <span>أقرب صيدلية متوفرة</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">اكتب أسماء الأدوية أو الجرعات المطلوبة:</label>
-            <textarea id="pharmacyNotesInput" rows="2" placeholder="اكتب أسماء الأدوية أو مستلزمات الصيدلية..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+            <label class="block font-bold text-slate-700 mb-1">اكتب أسماء الأدوية أو الجرعات المطلوبة بالتفصيل *</label>
+            <textarea id="pharmacyNotesInput" rows="3" placeholder="مثلاً: بنادول أزرق شريطين، علاج كحة كذا، قطرة عين، أو أي مستلزمات..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold"></textarea>
           </div>
 
           <!-- PHOTO UPLOAD -->
           <div>
-            <label class="block font-bold text-slate-700 mb-1">أو ارفع صورة الروشتة بالكاميرا:</label>
+            <label class="block font-bold text-slate-700 mb-1">أو ارفع صورة الروشتة أو علبة الدواء بالكاميرا:</label>
             <label class="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 rounded-2xl p-3 text-xs text-blue-700 font-bold cursor-pointer transition">
-              <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span id="pharmPhotoLabel">تصوير الروشتة بالكاميرا أو المعرض 📷</span>
-              <span class="text-[10px] text-blue-400 font-normal">يتم رفع الصورة تلقائياً وتوليد رابط يفتح في الواتساب</span>
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span id="pharmPhotoLabel">تصوير الروشتة أو علبة العلاج بالكاميرا 📷</span>
+              <span class="text-[10px] text-blue-400 font-normal">يتم توليد رابط للصورة يفتح في الواتساب بوضوح تام</span>
               <input type="file" id="pharmacyFileInput" accept="image/*" class="hidden" onchange="handlePharmacyPhotoUpload(this)">
             </label>
 
@@ -1289,13 +1451,14 @@
           </div>
         </div>
 
-        <button onclick="addPharmacyOrder()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
-          إضافة طلب الروشتة للسلة 🛒
-        </button>
+        <div class="space-y-2 pt-2 border-t border-slate-100">
+          <button id="btnAddPharmBtn" onclick="addPharmacyOrder()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
+            إضافة طلب الروشتة للسلة 🛒
+          </button>
+        </div>
       `;
       wrapper.appendChild(pharmCard);
 
-      // Render any OTC items present in sheet
       if (currentDept.items && currentDept.items.length > 0) {
         renderProductGrid(wrapper, currentDept.items, 'الصيدلية');
       }
@@ -1345,11 +1508,16 @@
       const thumb = document.getElementById('pharmThumb');
       const badge = document.getElementById('pharmStatusBadge');
       const sub = document.getElementById('pharmStatusSub');
+      const addBtn = document.getElementById('btnAddPharmBtn');
 
       if (previewBox) previewBox.classList.remove('hidden');
       if (thumb) thumb.src = URL.createObjectURL(rawFile);
       if (badge) badge.textContent = '⏳ جارٍ رفع صورة الروشتة وتوليد الرابط...';
-      if (sub) sub.textContent = 'يرجى الانتظار ثوانٍ قليلة';
+      if (sub) sub.textContent = 'يرجى الانتظار ثوانٍ معدودة';
+      if (addBtn) {
+        addBtn.disabled = true;
+        addBtn.classList.add('opacity-70');
+      }
 
       pharmacyUploadState.file = rawFile;
       pharmacyUploadState.isUploading = true;
@@ -1375,13 +1543,17 @@
             return;
           }
         }
-        throw new Error('Upload error');
+        throw new Error('Upload server error');
       } catch (err) {
-        console.warn('Upload fallback:', err);
-        if (badge) badge.textContent = '📷 الصورة محفوظة على هاتفك';
-        if (sub) sub.textContent = 'يرجى إرفاقها مباشرة داخل محادثة الواتساب 📎';
+        console.warn('Upload fallback triggered:', err);
+        if (badge) badge.textContent = '📷 الصورة ملتقطة وجاهزة على جهازك';
+        if (sub) sub.textContent = 'سيتم تذكيرك بإرفاقها مباشرة داخل الشات 📎';
       } finally {
         pharmacyUploadState.isUploading = false;
+        if (addBtn) {
+          addBtn.disabled = false;
+          addBtn.classList.remove('opacity-70');
+        }
       }
     }
 
@@ -1394,7 +1566,6 @@
     }
 
     function addPharmacyOrder() {
-      const choice = document.querySelector('input[name="pharmChoice"]:checked')?.value || 'صيدلية بالقرية';
       const notes = document.getElementById('pharmacyNotesInput')?.value.trim() || '';
       const hasPhoto = !!pharmacyUploadState.file;
 
@@ -1406,11 +1577,14 @@
       cart.push({
         id: 'pharm_' + Date.now(),
         type: 'pharmacy_order',
-        name: `طلب من (${choice}): ${notes || 'روشتة علاج مرفقة بالصورة'}`,
+        name: `طلب صيدلية: ${notes || 'روشتة علاج مرفقة بالصورة'}`,
         price: 0,
         qty: 1,
+        mainCat: 'الصيدلية',
+        subCat: 'اطلب ما تحتاج',
         hasImage: hasPhoto,
-        imageUrl: pharmacyUploadState.remoteUrl || ''
+        imageUrl: pharmacyUploadState.remoteUrl || '',
+        image: pharmacyUploadState.remoteUrl || ''
       });
 
       removePharmacyPhoto();
@@ -1425,7 +1599,7 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
 
-      // Sub-bar: طباعة وتصوير vs منتجات مكتبية
+      renderProminentQuickRequestBox(wrapper, 'المكتبة والطباعة');
       renderSubCategoriesBar(wrapper, currentDept);
 
       if (activeSubFilter === 'طباعة وتصوير') {
@@ -1466,7 +1640,6 @@
         wrapper.appendChild(printCard);
       }
 
-      // Products grid for the library
       const filtered = activeSubFilter === 'all'
         ? currentDept.items
         : currentDept.items.filter(i => i.subCat === activeSubFilter);
@@ -1501,11 +1674,13 @@
     }
 
     // ========================================================
-    // E. SECTION: CUSTOM REQUEST / MISSING ITEMS (طلب مخصص)
+    // E. SECTION: CUSTOM REQUEST (طلب مخصص)
     // ========================================================
     function renderCustomOrderServiceSection(container, currentDept) {
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
+
+      renderProminentQuickRequestBox(wrapper, 'الطلبات والخدمات المخصصة');
 
       const customCard = document.createElement('div');
       customCard.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3';
@@ -1518,7 +1693,7 @@
           </div>
         </div>
 
-        <div class="space-y-2 text-xs">
+        <div class="space-y-2.5 text-xs">
           <div>
             <label class="block font-bold text-slate-700 mb-1">اكتب ما تحتاجه بالتفصيل *</label>
             <textarea id="customServiceDetails" rows="3" placeholder="اكتب اسم الصنف، الموديل، الكمية، أو أي خدمة خاصة ترغب بها..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold"></textarea>
@@ -1533,6 +1708,17 @@
             <input type="text" id="customServiceName" placeholder="الاسم بالكامل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
             <input type="tel" id="customServicePhone" placeholder="رقم الهاتف للتواصل *" class="p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold" dir="ltr">
           </div>
+
+          <!-- ADDRESS & GPS -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">عنوان التسليم بالتفصيل *</label>
+            <input type="text" id="customServiceAddress" placeholder="الشارع أو علامة مميزة لباب بيتك *" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+          </div>
+
+          <button type="button" onclick="captureGPSLocation()" class="w-full bg-slate-100 hover:bg-emerald-50 text-slate-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition">
+            <span>📍</span>
+            <span id="customGpsBtnText">تحديد موقعي الحالي على الخريطة (GPS)</span>
+          </button>
         </div>
 
         <div class="space-y-2 pt-2 border-t border-slate-100">
@@ -1546,7 +1732,6 @@
       `;
       wrapper.appendChild(customCard);
 
-      // Suggestions from sheet
       if (currentDept.items && currentDept.items.length > 0) {
         renderProductGrid(wrapper, currentDept.items, 'خدمات خاصة');
       }
@@ -1559,9 +1744,10 @@
       const location = document.getElementById('customServiceLocation')?.value.trim() || 'أي مكان';
       const name = document.getElementById('customServiceName')?.value.trim();
       const phone = document.getElementById('customServicePhone')?.value.trim();
+      const address = document.getElementById('customServiceAddress')?.value.trim();
 
-      if (!details || !name || !phone) {
-        alert('من فضلك اكتب تفاصيل الطلب، اسمك، ورقم هاتفك.');
+      if (!details || !name || !phone || !address) {
+        alert('من فضلك اكتب تفاصيل الطلب، اسمك، رقم هاتفك، وعنوانك بالتفصيل.');
         return;
       }
 
@@ -1571,6 +1757,8 @@
       msg += `📍 *المكان المطلوب الشراء منه:* ${location}\n`;
       msg += `👤 *العميل:* ${name}\n`;
       msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `🏠 *العنوان:* ${address}\n`;
+      if (userGPSLocationUrl) msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
       msg += `---------------------------------\n`;
       msg += `🛵 _سيتم مراجعة الطلب والتواصل معك لتأكيد التكلفة والشراء فوراً._`;
 
@@ -1593,7 +1781,10 @@
         type: 'custom',
         name: `طلب خاص [من: ${location}]: ${details}`,
         price: 0,
-        qty: 1
+        qty: 1,
+        mainCat: 'طلب مخصص',
+        subCat: 'طلبات خاصة',
+        image: ''
       });
 
       updateCartUI();
@@ -1601,26 +1792,15 @@
     }
 
     // ========================================================
-    // F. SECTION: STANDARD CATALOG (Market, Restaurants, Veg, Gifts, Hardware)
+    // F. SECTION: STANDARD CATALOG
     // ========================================================
     function renderStandardCatalogSection(container, currentDept) {
       const wrapper = document.createElement('div');
       wrapper.className = 'space-y-3';
 
-      // 1. Sub-categories bar
+      renderProminentQuickRequestBox(wrapper, currentDept.name);
       renderSubCategoriesBar(wrapper, currentDept);
 
-      // 2. Quick item request box
-      const quickBox = document.createElement('div');
-      quickBox.className = 'bg-white rounded-2xl p-2.5 border border-slate-200 shadow-sm flex items-center gap-2';
-      quickBox.innerHTML = `
-        <span class="text-base">${currentDept.emoji || '🛍️'}</span>
-        <input type="text" id="quickAddInput" placeholder="صنف مش لاقيه في ${currentDept.name}؟ اكتبه هنا..." class="flex-1 text-xs px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-500 font-semibold">
-        <button onclick="addQuickItemToCart('${currentDept.name}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl active:scale-95 transition">إضافة</button>
-      `;
-      wrapper.appendChild(quickBox);
-
-      // 3. Grid of Products
       const filteredItems = activeSubFilter === 'all'
         ? currentDept.items
         : currentDept.items.filter(i => i.subCat === activeSubFilter);
@@ -1637,7 +1817,7 @@
 
       const allBtn = document.createElement('button');
       allBtn.className = `g-filter ${activeSubFilter === 'all' ? 'active bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'} px-3 py-1.5 rounded-xl font-bold shrink-0 transition`;
-      allBtn.textContent = 'كل المنتجات';
+      allBtn.textContent = 'كل الأصناف';
       allBtn.onclick = () => {
         activeSubFilter = 'all';
         renderActiveTabContent();
@@ -1659,6 +1839,14 @@
       container.appendChild(subBar);
     }
 
+    function handleImageError(imgEl, fallbackEmoji) {
+      imgEl.onerror = null;
+      const parent = imgEl.parentElement;
+      if (parent) {
+        parent.innerHTML = `<div class="flex items-center justify-center h-full text-3xl select-none">${fallbackEmoji || '🛍️'}</div>`;
+      }
+    }
+
     function renderProductGrid(container, items, deptName) {
       const grid = document.createElement('div');
       grid.className = 'grid grid-cols-2 gap-2.5';
@@ -1672,6 +1860,7 @@
       items.forEach(item => {
         const inCartItem = cart.find(c => c.id === item.id);
         const qty = inCartItem ? inCartItem.qty : 0;
+        const fallbackIcon = item.icon || getDepartmentEmoji(deptName);
 
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl p-3 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition';
@@ -1680,7 +1869,7 @@
         if (item.image) {
           topVisual = `
             <div class="w-full h-24 mb-2 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative">
-              <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-2xl\\'>${item.icon || getDepartmentEmoji(deptName)}</div>'">
+              <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy" onerror="handleImageError(this, '${fallbackIcon}')">
               <span class="absolute top-1 left-1 text-[10px] font-bold text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full shadow-sm">
                 ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
               </span>
@@ -1688,8 +1877,8 @@
           `;
         } else {
           topVisual = `
-            <div class="flex items-start justify-between">
-              <span class="text-2xl">${item.icon || getDepartmentEmoji(deptName)}</span>
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-2xl">${fallbackIcon}</span>
               <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                 ${item.price > 0 ? `~ ${item.price} ج` : 'حسب الفاتورة'}
               </span>
@@ -1700,7 +1889,7 @@
         card.innerHTML = `
           <div>
             ${topVisual}
-            <h4 class="font-bold text-xs text-slate-800 mt-1.5 leading-tight">${item.name}</h4>
+            <h4 class="font-bold text-xs text-slate-800 mt-1 leading-tight">${item.name}</h4>
             <p class="text-[10px] text-slate-400 mt-0.5">${item.subCat && item.subCat !== 'عام' ? item.subCat : deptName}</p>
           </div>
 
@@ -1725,14 +1914,16 @@
     }
 
     // ==========================================
-    // 6. CART OPERATIONS
+    // 7. CART OPERATIONS & PAYMENT TOGGLE
     // ==========================================
     function addGenericToCart(itemId) {
       let found = null;
+      let foundDept = null;
       for (const deptKey in catalogDepartments) {
         const item = catalogDepartments[deptKey].items.find(i => i.id === itemId);
         if (item) {
           found = item;
+          foundDept = deptKey;
           break;
         }
       }
@@ -1743,7 +1934,10 @@
         type: 'standard',
         name: found.name,
         price: found.price,
-        qty: 1
+        qty: 1,
+        mainCat: foundDept || activeMainTab,
+        subCat: found.subCat || '',
+        image: found.image || ''
       });
 
       updateCartUI();
@@ -1762,31 +1956,38 @@
       renderActiveTabContent();
     }
 
-    function addQuickItemToCart(deptName) {
-      const input = document.getElementById('quickAddInput');
-      const text = input ? input.value.trim() : '';
-      if (!text) {
-        alert('اكتب اسم الطلب أولاً');
-        return;
+    function togglePaymentMethodUI() {
+      const isOnline = document.querySelector('input[name="paymentMethod"]:checked')?.value === 'online';
+      const noticeBox = document.getElementById('onlinePaymentNoticeBox');
+      const cashLabel = document.getElementById('labelPayCash');
+      const onlineLabel = document.getElementById('labelPayOnline');
+
+      if (isOnline) {
+        if (noticeBox) noticeBox.classList.remove('hidden');
+        if (onlineLabel) {
+          onlineLabel.className = 'flex items-center gap-1.5 p-2 rounded-lg border border-blue-400 bg-blue-50 text-blue-950 font-bold cursor-pointer transition';
+        }
+        if (cashLabel) {
+          cashLabel.className = 'flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer transition';
+        }
+      } else {
+        if (noticeBox) noticeBox.classList.add('hidden');
+        if (cashLabel) {
+          cashLabel.className = 'flex items-center gap-1.5 p-2 rounded-lg border border-emerald-400 bg-emerald-50 text-emerald-950 font-bold cursor-pointer transition';
+        }
+        if (onlineLabel) {
+          onlineLabel.className = 'flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold cursor-pointer transition';
+        }
       }
-
-      cart.push({
-        id: 'quick_' + Date.now(),
-        type: 'custom',
-        name: `[${deptName}] ${text}`,
-        price: 0,
-        qty: 1
-      });
-
-      if (input) input.value = '';
-      updateCartUI();
-      openCartModal();
     }
 
     function captureGPSLocation() {
       const btnText = document.getElementById('btnGetLocationText');
       const hint = document.getElementById('locationStatusHint');
       const errandGps = document.getElementById('errandGpsText');
+      const cashGps = document.getElementById('cashGpsBtnText');
+      const billGps = document.getElementById('billGpsBtnText');
+      const customGps = document.getElementById('customGpsBtnText');
 
       if (!navigator.geolocation) {
         alert('خاصية تحديد الموقع غير مدعومة في متصفحك.');
@@ -1795,6 +1996,9 @@
 
       if (btnText) btnText.textContent = 'جارٍ تحديد الموقع عبر الأقمار الصناعية...';
       if (errandGps) errandGps.textContent = 'جارٍ تحديد الموقع...';
+      if (cashGps) cashGps.textContent = 'جارٍ تحديد الموقع...';
+      if (billGps) billGps.textContent = 'جارٍ تحديد الموقع...';
+      if (customGps) customGps.textContent = 'جارٍ تحديد الموقع...';
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -1804,6 +2008,10 @@
           
           if (btnText) btnText.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
           if (errandGps) errandGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
+          if (cashGps) cashGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
+          if (billGps) billGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
+          if (customGps) customGps.textContent = '✅ تم تحديد موقعك بدقة (GPS)';
+
           if (hint) {
             hint.textContent = 'تم حفظ الإحداثيات وسيتم إرسال رابط الخريطة مع الطلب في واتساب';
             hint.className = 'text-[10px] text-emerald-600 font-bold mt-1 text-center';
@@ -1812,8 +2020,11 @@
         (error) => {
           console.warn('Geolocation error:', error);
           if (btnText) btnText.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
-          if (errandGps) errandGps.textContent = '📍 تحديد موقعي على الخريطة (GPS)';
-          alert('يرجى السماح للتطبيق بالوصول للموقع عند طلب المتصفح لتفعيل الميزة.');
+          if (errandGps) errandGps.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          if (cashGps) cashGps.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          if (billGps) billGps.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          if (customGps) customGps.textContent = '📍 تحديد موقعي الحالي على الخريطة (GPS)';
+          alert('يرجى السماح للمتصفح بالوصول للموقع لتفعيل الميزة بدقة.');
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
@@ -1823,9 +2034,13 @@
       const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
       const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-      document.getElementById('cartCountBadge').textContent = totalCount;
-      document.getElementById('headerCartCount').textContent = totalCount;
-      document.getElementById('cartApproxTotal').textContent = approxSubtotal;
+      const badge = document.getElementById('cartCountBadge');
+      const headerCount = document.getElementById('headerCartCount');
+      const totalEl = document.getElementById('cartApproxTotal');
+
+      if (badge) badge.textContent = totalCount;
+      if (headerCount) headerCount.textContent = totalCount;
+      if (totalEl) totalEl.textContent = approxSubtotal;
 
       renderCartModalItems();
       updateDeliveryFee();
@@ -1833,6 +2048,8 @@
 
     function renderCartModalItems() {
       const list = document.getElementById('cartItemsList');
+      if (!list) return;
+
       if (cart.length === 0) {
         list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">سلة الطلبات فارغة</div>`;
         return;
@@ -1841,18 +2058,26 @@
       list.innerHTML = '';
       cart.forEach((item, idx) => {
         const itemRow = document.createElement('div');
-        itemRow.className = 'flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs';
+        itemRow.className = 'flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs gap-2';
         
         let subText = item.price > 0 ? `~ ${item.price * item.qty} ج` : 'حسب الفاتورة';
         let badgeIcon = item.type === 'pharmacy_order' ? '💊' : item.type === 'special_errand' ? '🛵' : '🛍️';
 
-        let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة مرفقة</span>` : '');
+        let catBreadcrumb = '';
+        if (item.mainCat) {
+          catBreadcrumb = `<span class="text-[9px] bg-slate-200/80 text-slate-600 px-1.5 py-0.2 rounded font-semibold">${item.mainCat}${item.subCat && item.subCat !== 'عام' ? ' > ' + item.subCat : ''}</span>`;
+        }
+
+        let photoIndicator = item.imageUrl ? `<a href="${item.imageUrl}" target="_blank" class="text-blue-600 font-bold text-[10px] underline block mt-0.5">📷 معاينة صورة الروشتة</a>` : (item.hasImage ? `<span class="text-amber-600 text-[10px] block mt-0.5">📷 صورة مرفقة</span>` : (item.image ? `<a href="${item.image}" target="_blank" class="text-emerald-700 font-bold text-[9px] underline block mt-0.5">🖼️ معاينة صورة المنتج</a>` : ''));
 
         itemRow.innerHTML = `
-          <div class="flex items-center gap-1.5 flex-1 pr-1 truncate">
-            <span>${badgeIcon}</span>
+          <div class="flex items-center gap-2 flex-1 pr-1 truncate">
+            <span class="text-base">${badgeIcon}</span>
             <div class="truncate">
-              <p class="font-bold text-slate-800 text-xs truncate">${item.name}</p>
+              <div class="flex items-center gap-1.5 truncate">
+                <p class="font-bold text-slate-800 text-xs truncate">${item.name}</p>
+                ${catBreadcrumb}
+              </div>
               <p class="text-[10px] text-slate-400">${item.qty} × <span class="text-emerald-700 font-bold">${subText}</span></p>
               ${photoIndicator}
             </div>
@@ -1874,21 +2099,30 @@
       const fee = selectedLoc === 'inside' ? appConfig.feeInside : appConfig.feeOutside;
       const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-      document.getElementById('summaryApproxSubtotal').textContent = approxSubtotal;
-      document.getElementById('summaryDeliveryFee').textContent = fee;
-      document.getElementById('summaryGrandTotal').textContent = approxSubtotal + fee;
+      const subtotalEl = document.getElementById('summaryApproxSubtotal');
+      const feeEl = document.getElementById('summaryDeliveryFee');
+      const grandTotalEl = document.getElementById('summaryGrandTotal');
+
+      if (subtotalEl) subtotalEl.textContent = approxSubtotal;
+      if (feeEl) feeEl.textContent = fee;
+      if (grandTotalEl) grandTotalEl.textContent = approxSubtotal + fee;
     }
 
     function openCartModal() {
       renderCartModalItems();
       updateDeliveryFee();
-      document.getElementById('cartBar').classList.add('hidden');
-      document.getElementById('cartModal').classList.remove('hidden');
+      togglePaymentMethodUI();
+      const cartBar = document.getElementById('cartBar');
+      const modal = document.getElementById('cartModal');
+      if (cartBar) cartBar.classList.add('hidden');
+      if (modal) modal.classList.remove('hidden');
     }
 
     function closeCartModal() {
-      document.getElementById('cartModal').classList.add('hidden');
-      document.getElementById('cartBar').classList.remove('hidden');
+      const modal = document.getElementById('cartModal');
+      const cartBar = document.getElementById('cartBar');
+      if (modal) modal.classList.add('hidden');
+      if (cartBar) cartBar.classList.remove('hidden');
     }
 
     function sendOrderViaWhatsApp() {
@@ -1912,29 +2146,51 @@
       const approxSubtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
       const grandTotal = approxSubtotal + fee;
 
+      const isOnlinePay = document.querySelector('input[name="paymentMethod"]:checked')?.value === 'online';
+      const paymentMethodSummary = isOnlinePay 
+        ? '📱 إلكتروني (فودافون كاش / إنستاباي - بعد تأكيد الفاتورة)'
+        : '💵 كاش عند الاستلام';
+
       let msg = `🛵 *طلب جديد - تسوق الغريزات*\n`;
       msg += `📍 *القرية:* الغريزات وما حولها\n`;
       msg += `---------------------------------\n`;
       msg += `👤 *العميل:* ${name}\n`;
       msg += `📞 *الهاتف:* ${phone}\n`;
       msg += `🏠 *العنوان:* ${address}\n`;
+      msg += `💳 *طريقة الدفع:* ${paymentMethodSummary}\n`;
       
+      if (isOnlinePay) {
+        msg += `ℹ️ _ملاحظة الدفع: سيتم التحويل لرقم 01060803100 بعد تأكيد الفاتورة مع المندوب._\n`;
+      }
+
       if (userGPSLocationUrl) {
         msg += `🗺️ *الموقع على الخريطة (GPS):*\n${userGPSLocationUrl}\n`;
       }
 
       if (notes) msg += `📝 *ملاحظات:* ${notes}\n`;
       msg += `---------------------------------\n`;
-      msg += `📋 *قائمة الطلبات:*\n`;
+      msg += `📋 *قائمة الطلبات بالتفصيل والصور:*\n\n`;
 
       cart.forEach((item, idx) => {
-        let priceTag = item.price > 0 ? `(~${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
-        msg += `${idx + 1}. ${item.qty} × ${item.name} ${priceTag}\n`;
+        let priceTag = item.price > 0 ? `(~ ${item.price * item.qty} ج)` : `(حسب الفاتورة)`;
+        msg += `*${idx + 1}. ${item.qty} × ${item.name}* ${priceTag}\n`;
+        
+        if (item.mainCat) {
+          let path = item.subCat && item.subCat !== 'عام' ? `${item.mainCat} > ${item.subCat}` : item.mainCat;
+          msg += `   📂 *القسم:* ${path}\n`;
+        }
+
+        if (item.image) {
+          msg += `   🖼️ *صورة الصنف:* ${item.image}\n`;
+        }
+
         if (item.imageUrl) {
           msg += `   📷 *رابط صورة الروشتة/الطلب:* ${item.imageUrl}\n`;
         } else if (item.hasImage) {
           msg += `   📷 *ملاحظة:* يرجى إرسال صورة الروشتة في هذا الشات الآن 📎\n`;
         }
+
+        msg += `\n`;
       });
 
       msg += `---------------------------------\n`;
